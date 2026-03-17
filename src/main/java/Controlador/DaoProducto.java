@@ -263,15 +263,15 @@ public int obtenerSiguienteIDDisponible(String tabla) {
 public Integer verCodigoDisponible(JTextField tex) {
     Configuracion.CConexion objetoConexion = new Configuracion.CConexion();
     
-    // Cambiamos id_producto por codigo_barras. 
-    // Usamos CAST para asegurar que SQLite lo trate como número para sumar (+1)
+    // Esta consulta verifica si el 1 existe; si no, lo devuelve. 
+    // Si el 1 existe, busca el primer número faltante en la secuencia.
     String sql = "SELECT CASE " +
-                 "  WHEN (SELECT COUNT(codigo_barras) FROM productos) = 0 THEN 1 " +
+                 "  WHEN (SELECT COUNT(*) FROM productos WHERE CAST(codigo_barras AS INTEGER) = 1) = 0 THEN 1 " +
                  "  ELSE (SELECT CAST(t1.codigo_barras AS INTEGER) + 1 " +
                  "        FROM productos AS t1 " +
                  "        LEFT JOIN productos AS t2 ON CAST(t1.codigo_barras AS INTEGER) + 1 = CAST(t2.codigo_barras AS INTEGER) " +
                  "        WHERE t2.codigo_barras IS NULL " +
-                 "        ORDER BY CAST(t1.codigo_barras AS INTEGER) LIMIT 1) " +
+                 "        ORDER BY CAST(t1.codigo_barras AS INTEGER) ASC LIMIT 1) " +
                  "END AS disponible";
 
     Integer disponible = 1;
@@ -282,20 +282,61 @@ public Integer verCodigoDisponible(JTextField tex) {
 
         if (rs.next()) {
             disponible = rs.getInt("disponible");
-            
             if (disponible <= 0) disponible = 1;
             
             if (tex != null) {
-                // Seteamos el código de barras sugerido en el JTextField
                 tex.setText(String.valueOf(disponible));
             }
         }
-
     } catch (Exception e) {
-        new Alerta("Error al buscar Código de Barras disponible", new java.awt.Color(231, 76, 60), null);
+        new Alerta("Error al buscar Código disponible", new java.awt.Color(231, 76, 60), null);
         e.printStackTrace();
     }
     
     return disponible;
+}
+
+public void seleccionarItemPorId(JComboBox<ItemSeleccionable> combo, int idBuscado) {
+    for (int i = 0; i < combo.getItemCount(); i++) {
+        ItemSeleccionable item = combo.getItemAt(i);
+        if (item.getId() == idBuscado) {
+            combo.setSelectedIndex(i);
+            break;
+        }
+    }
+}
+public Producto obtenerproducto(Integer codigo) {
+    // 1. SQL para buscar por ID de producto (o codigo_barras si preferís)
+    String sql = "SELECT id_producto, codigo_barras, nombre, precio_venta, precio_compra, stock, id_categoria, id_proveedor " +
+                 "FROM productos WHERE id_producto = ?";
+    
+    Producto pro = new Producto();
+    CConexion conexion = new CConexion();
+
+    try (Connection con = conexion.estableceConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, codigo);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            // 2. Mapeo de la base de datos al objeto Producto
+            pro.setId(rs.getInt("id_producto"));
+            pro.setCodigoBarras(rs.getString("codigo_barras"));
+            pro.setNombre(rs.getString("nombre"));
+            pro.setPrecioVenta(rs.getBigDecimal("precio_venta"));
+            pro.setPrecioCompra(rs.getBigDecimal("precio_compra"));
+            pro.setStock(rs.getBigDecimal("stock"));
+            
+            // Estos IDs son la clave para que tus ComboBox se seleccionen solos
+            pro.setIdCategoria(rs.getInt("id_categoria"));
+            pro.setIdProveedor(rs.getInt("id_proveedor"));
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al obtener producto: " + e.getMessage());
+    }
+    
+    return pro;
 }
 }

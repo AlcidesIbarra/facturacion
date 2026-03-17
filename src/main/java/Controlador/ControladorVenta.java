@@ -106,108 +106,85 @@ public class ControladorVenta {
 
     }
 
-    public boolean buscarProducto(JTextField datoBuscar, JTable listaSugerencias, JScrollPane contenedorTabla, String activos) {
-        boolean returno = false;
-        Configuracion.CConexion objetoConexion = new Configuracion.CConexion();
-        Modelos.ModeloProducto objetoProducto = new Modelos.ModeloProducto();
-        DefaultTableModel modelo = new DefaultTableModel();
-        modelo.addColumn("descripcion");
-        modelo.addColumn("id");
-        Boolean numeroLetra = false;
-        Integer numero;
-        boolean act = false;
-        switch (activos) {
-            case "ACTIVOS":
-                act = false;
-                break;
-            case "INACTIVOS":
-                act = true;
-                break;
+ public boolean buscarProducto(JTextField datoBuscar, JTable listaSugerencias, JScrollPane contenedorTabla, String activos) {
+    boolean returno = false;
+    Configuracion.CConexion objetoConexion = new Configuracion.CConexion();
+    Modelos.ModeloProducto objetoProducto = new Modelos.ModeloProducto();
+    DefaultTableModel modelo = new DefaultTableModel();
+    modelo.addColumn("descripcion");
+    modelo.addColumn("id");
+    
+    Boolean numeroLetra = false;
+    Integer numero;
+    
+    // Ajuste de lógica para el campo 'activo' (1 para ACTIVOS, 0 para INACTIVOS)
+    int estadoActivo = activos.equalsIgnoreCase("ACTIVOS") ? 1 : 0;
 
-            default:
-                act = false;
-        }
-
-        try {
-            numero = Integer.parseInt(datoBuscar.getText());
-            numeroLetra = true;
-        } catch (Exception e) {
-            numeroLetra = false;
-        }
-        try {
-
-            String consulta = null;
-            if (numeroLetra == false) {
-                consulta = "select producto.codigoproducto, producto.descripcion,"
-                        + " producto.precio_compra, producto.precio_venta, producto.stock, "
-                        + "producto.proveedor, producto.rubro from producto where"
-                        + " producto.descripcion like concat('%',?,'%') and  producto.activo!=" + act + ";";
-
-            } else {
-                consulta = "select producto.codigoproducto, producto.descripcion,"
-                        + " producto.precio_compra, producto.precio_venta, "
-                        + "producto.stock, producto.proveedor, "
-                        + "producto.rubro from producto where producto.codigoproducto"
-                        + " like concat('%',?,'%') and  producto.activo!=" + act + ";";
-
-            }
-
-            if (!datoBuscar.getText().equalsIgnoreCase("")) {
-
-                PreparedStatement ps = objetoConexion.estableceConexion().prepareStatement(consulta);
-                ps.setString(1, datoBuscar.getText());
-                ResultSet rs = ps.executeQuery();
-
-                int contador = 0;
-                int tamaño = listaSugerencias.getRowHeight();
-                //     contador = contador + tamaño;
-                //         contenedorTabla.setSize(170, contador+6);
-
-                while (rs.next()) {
-                    returno = true;
-                    objetoProducto.setCodigo(rs.getInt("codigoproducto"));
-                    objetoProducto.setDescripcion(rs.getString("descripcion"));
-                    objetoProducto.setPrecioCompra(rs.getDouble("precio_compra"));
-                    objetoProducto.setPrecioVenta(rs.getDouble("precio_venta"));
-                    objetoProducto.setStock(rs.getDouble("stock"));
-                    objetoProducto.setProveedor(rs.getString("proveedor"));
-                    objetoProducto.setRubro(rs.getString("rubro"));
-                    modelo.addRow(new Object[]{objetoProducto.getDescripcion(), objetoProducto.getCodigo()});
-                    contador = contador + tamaño;
-                }
-
-//AQUI DIMENSIONO LAS SELECCIONES
-                contenedorTabla.setVerticalScrollBarPolicy(contenedorTabla.VERTICAL_SCROLLBAR_NEVER);
-
-                contenedorTabla.setVisible(true);
-                listaSugerencias.setModel(modelo);
-                //   listaSugerencias.setRowHeight(18);
-                contenedorTabla.setSize(170, contador + 6);
-
-                listaSugerencias.getTableHeader().setPreferredSize(new Dimension(180, 0));
-                listaSugerencias.setRowMargin(0);
-//no modificar
-                for (int i = 0; i < listaSugerencias.getColumnCount(); i++) {
-                    Class<?> colClas = listaSugerencias.getColumnClass(i);
-                    listaSugerencias.setDefaultEditor(colClas, null);
-                }
-
-                //oculto la segunda columna
-                // TableColumnModel tcm= listaSugerencias.getTableHeader().getColumnModel();
-                // tcm.removeColumn(tcm.getColumn(1));
-                listaSugerencias.getColumn("id").setMinWidth(0);
-                listaSugerencias.getColumn("id").setMaxWidth(0);
-                listaSugerencias.getColumn("id").setWidth(0);
-//contenedorTabla
-
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "25 ERROR: CONTACTE AL ADMINISTARDOR:" + e.toString());
-        } finally {
-            objetoConexion.cerrarConexion();
-        }
-        return returno;
+    try {
+        numero = Integer.parseInt(datoBuscar.getText());
+        numeroLetra = true;
+    } catch (Exception e) {
+        numeroLetra = false;
     }
+
+    try {
+        String consulta = null;
+        
+        // Consultas actualizadas para tabla 'productos' y sintaxis SQLite
+        if (numeroLetra == false) {
+            consulta = "SELECT id_producto, codigo_barras, nombre, precio_compra, precio_venta, stock "
+                    + "FROM productos WHERE nombre LIKE '%' || ? || '%' AND activo = " + estadoActivo + ";";
+        } else {
+            consulta = "SELECT id_producto, codigo_barras, nombre, precio_compra, precio_venta, stock "
+                    + "FROM productos WHERE codigo_barras LIKE '%' || ? || '%' AND activo = " + estadoActivo + ";";
+        }
+
+        if (!datoBuscar.getText().equalsIgnoreCase("")) {
+            PreparedStatement ps = objetoConexion.estableceConexion().prepareStatement(consulta);
+            ps.setString(1, datoBuscar.getText());
+            ResultSet rs = ps.executeQuery();
+
+            int contador = 0;
+            int tamaño = listaSugerencias.getRowHeight();
+
+            while (rs.next()) {
+                returno = true;
+                // Mapeo a tu objeto con los nuevos nombres de columna
+                objetoProducto.setCodigo(rs.getInt("id_producto"));
+                objetoProducto.setDescripcion(rs.getString("nombre"));
+                objetoProducto.setPrecioCompra(rs.getDouble("precio_compra"));
+                objetoProducto.setPrecioVenta(rs.getDouble("precio_venta"));
+                objetoProducto.setStock(rs.getDouble("stock"));
+                
+                // Agregamos a la fila
+                modelo.addRow(new Object[]{objetoProducto.getDescripcion(), objetoProducto.getCodigo()});
+                contador = contador + tamaño;
+            }
+
+            // --- SE MANTIENEN TUS DIMENSIONES Y CONFIGURACIÓN VISUAL ---
+            contenedorTabla.setVerticalScrollBarPolicy(contenedorTabla.VERTICAL_SCROLLBAR_NEVER);
+            contenedorTabla.setVisible(true);
+            listaSugerencias.setModel(modelo);
+            contenedorTabla.setSize(170, contador + 6);
+            listaSugerencias.getTableHeader().setPreferredSize(new Dimension(180, 0));
+            listaSugerencias.setRowMargin(0);
+
+            for (int i = 0; i < listaSugerencias.getColumnCount(); i++) {
+                Class<?> colClas = listaSugerencias.getColumnClass(i);
+                listaSugerencias.setDefaultEditor(colClas, null);
+            }
+
+            listaSugerencias.getColumn("id").setMinWidth(0);
+            listaSugerencias.getColumn("id").setMaxWidth(0);
+            listaSugerencias.getColumn("id").setWidth(0);
+        }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "25 ERROR: CONTACTE AL ADMINISTRADOR:" + e.toString());
+    } finally {
+        objetoConexion.cerrarConexion();
+    }
+    return returno;
+}
 
     public Mensaje SeleccionarProductosVentaFocusLost(JTable listaProducto, JTextField fieldCantidad,
             JTextField codigoProducto, JTextField txtBuscarProducto,

@@ -24,24 +24,6 @@ public class Producto {
         
     }
 
-    public BigDecimal getPrecioCompra() {
-        return precioCompra;
-    }
-
-    public void setPrecioCompra(BigDecimal precioCompra) {
-        this.precioCompra = precioCompra;
-    }
-
-    public int getIdProveedor() {
-        return idProveedor;
-    }
-
-    public void setIdProveedor(int idProveedor) {
-        this.idProveedor = idProveedor;
-    }
-
-    // Constructores, Getters y Setters...
-
     public int getId() {
         return id;
     }
@@ -89,4 +71,23 @@ public class Producto {
     public void setIdCategoria(int idCategoria) {
         this.idCategoria = idCategoria;
     }
+
+    public BigDecimal getPrecioCompra() {
+        return precioCompra;
+    }
+
+    public void setPrecioCompra(BigDecimal precioCompra) {
+        this.precioCompra = precioCompra;
+    }
+
+    public int getIdProveedor() {
+        return idProveedor;
+    }
+
+    public void setIdProveedor(int idProveedor) {
+        this.idProveedor = idProveedor;
+    }
+    
+
+   
 }

@@ -47,8 +47,10 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import Modelos.ItemSeleccionable;
+import Modelos.Producto;
 import java.awt.Frame;
 import java.awt.Window;
+import java.awt.event.FocusEvent;
 import javax.swing.JOptionPane;
 
 /**
@@ -63,7 +65,7 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
     public FormAgregarProducto(Integer verificador1) {
         initComponents();
         ControladorAdministracion ca = new ControladorAdministracion();
-verificador.setVisible(false);
+        verificador.setVisible(false);
         ca.cambiacolor(this);
         ca.BotonesCrisitalPrim(btnGuardarProducto, Color.green, Color.black, Color.black);
         ca.BotonesCrisitalPrim(jButton2, Color.RED, Color.black, Color.black);
@@ -71,15 +73,16 @@ verificador.setVisible(false);
         txtBuscarProducto.setVisible(false);
         jLabel8.setHorizontalAlignment(SwingConstants.CENTER);
 
-       DaoProducto dp = new DaoProducto();
+        DaoProducto dp = new DaoProducto();
         dp.cargarComboGenerico(cbxRubro, 1);
 
 // Cargar Proveedores (Tipo 2)
-dp.cargarComboGenerico(cbxProveedor, 2);
-        
-    
-      
-      dp       .verCodigoDisponible(codigoProducto);
+        dp.cargarComboGenerico(cbxProveedor, 2);
+
+        dp.verCodigoDisponible(codigoProducto);
+        codigoProducto.selectAll();
+        codigoProducto.requestFocusInWindow();
+
         if (verificador1 == 2 || verificador1 == 4) {
             verificador.setText(verificador1.toString());
             jLabel8.setText("EDITAR PRODUCTO");
@@ -87,37 +90,40 @@ dp.cargarComboGenerico(cbxProveedor, 2);
             codigoProducto.setVisible(false);
         }
         verificador.setText(verificador1.toString());
-        
-        
-          Dimension d = new Dimension(80, 26); // El tamaño que quieras
-jButton2.setPreferredSize(d);
-jButton2.setMinimumSize(d);
-jButton2.setMaximumSize(d);
 
-btnGuardarProducto.setPreferredSize(d);
-btnGuardarProducto.setMinimumSize(d);
-btnGuardarProducto.setMaximumSize(d);
+        Dimension d = new Dimension(80, 26); // El tamaño que quieras
+        jButton2.setPreferredSize(d);
+        jButton2.setMinimumSize(d);
+        jButton2.setMaximumSize(d);
+
+        btnGuardarProducto.setPreferredSize(d);
+        btnGuardarProducto.setMinimumSize(d);
+        btnGuardarProducto.setMaximumSize(d);
     }
-
 
     JTable tab = new JTable();
     JLabel menj = null;
 
     public void editarProducto(Integer codigo, JTable tabla, JLabel mensaje) {
         tab = tabla;
-        //  verificador.setText("2");
         menj = mensaje;
-        ControladorProducto cc = new ControladorProducto();
-        ModeloProducto producto = cc.obtenerproducto(codigo.toString());
-        txtBuscarProducto.setText(producto.getCodigo().toString());
-        codigoProducto.setText(producto.getCodigo().toString());
-        descripcionProducto.setText(producto.getDescripcion());
+
+        DaoProducto dp = new DaoProducto();
+        Producto producto = dp.obtenerproducto(codigo);
+
+        // Seteo de campos de texto
+        txtBuscarProducto.setText(producto.getCodigoBarras().toString());
+
+        descripcionProducto.setText(producto.getNombre());
         costoProducto.setText(producto.getPrecioCompra().toString());
         VentaProducto.setText(producto.getPrecioVenta().toString());
         stockProducto.setText(producto.getStock().toString());
-        proveedorProducto.setText(producto.getProveedor());
-        rubroProducto.setText(producto.getRubro());
-      
+
+        // --- SELECCIÓN DE COMBOBOX POR ID ---
+        // Usamos el método anterior pasando el combo y el ID que viene de la DB
+        dp.seleccionarItemPorId(cbxRubro, producto.getIdCategoria());
+        dp.seleccionarItemPorId(cbxProveedor, producto.getIdProveedor());
+
         contenedorTabla.setVisible(false);
         txtBuscarProducto.transferFocus();
     }
@@ -364,72 +370,76 @@ btnGuardarProducto.setMaximumSize(d);
     }//GEN-LAST:event_codigoProductoActionPerformed
 
     private void btnGuardarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarProductoActionPerformed
-   try {
-        Modelos.Producto pro = new Modelos.Producto();
-        
-        if (!txtId.getText().isEmpty()){
-            pro.setId(Integer.parseInt(txtId.getText()));
-        }
-        
-        pro.setCodigoBarras(codigoProducto.getText());
-        pro.setNombre(descripcionProducto.getText());
-        pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
-        pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
-        pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
+        try {
+            Modelos.Producto pro = new Modelos.Producto();
 
-        // 1. Obtener ID de Rubro
-        ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
-        if (itemRubro != null && itemRubro.getId() > 0) {
-            pro.setIdCategoria(itemRubro.getId());
-        } else {
-            new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
-            return;
-        }
+            if (!txtId.getText().isEmpty()) {
+                pro.setId(Integer.parseInt(txtId.getText()));
+            }
 
-        // 2. Obtener ID de Proveedor
-        ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
-        if (itemProv != null && itemProv.getId() > 0) {
-            pro.setIdProveedor(itemProv.getId());
-        } else {
-            new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
-            return;
-        }
+            pro.setCodigoBarras(codigoProducto.getText());
+            pro.setNombre(descripcionProducto.getText());
+            pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
+            pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
+            pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
 
-        int verifAux = Integer.parseInt(verificador.getText());
-        int modoEjecucion = verifAux;
-        if (verifAux == 4) modoEjecucion = 2; 
-        if (verifAux == 3) modoEjecucion = 1; 
+            // 1. Obtener ID de Rubro
+            ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
+            if (itemRubro != null && itemRubro.getId() > 0) {
+                pro.setIdCategoria(itemRubro.getId());
+            } else {
+                new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
 
-        // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
-        Controlador.DaoProducto dao = new Controlador.DaoProducto();
-        boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
+            // 2. Obtener ID de Proveedor
+            ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
+            if (itemProv != null && itemProv.getId() > 0) {
+                pro.setIdProveedor(itemProv.getId());
+            } else {
+                new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
 
-        // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
-        if (guardadoExitoso) {
-            tab = null;
-            int vFinal = Integer.parseInt(verificador.getText());
-            
-            if (vFinal == 4 || vFinal == 3) {
-                try {
-                    this.setClosed(true);
-                } catch (java.beans.PropertyVetoException ex) {
-                    java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            int verifAux = Integer.parseInt(verificador.getText());
+            int modoEjecucion = verifAux;
+            if (verifAux == 4) {
+                modoEjecucion = 2;
+            }
+            if (verifAux == 3) {
+                modoEjecucion = 1;
+            }
+
+            // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
+            Controlador.DaoProducto dao = new Controlador.DaoProducto();
+            boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
+
+            // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
+            if (guardadoExitoso) {
+                tab = null;
+                int vFinal = Integer.parseInt(verificador.getText());
+
+                if (vFinal == 4 || vFinal == 3) {
+                    try {
+                        this.setClosed(true);
+                    } catch (java.beans.PropertyVetoException ex) {
+                        java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // Aquí limpiamos porque sabemos que los datos ya están en la BD
+                    limpiarCampos();
+                    new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
                 }
             } else {
-                // Aquí limpiamos porque sabemos que los datos ya están en la BD
-                limpiarCampos();
-                new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
+                // Si NO fue exitoso (por código duplicado), no limpiamos nada.
+                // Ponemos el foco en el código de barras para que lo corrija.
+                codigoProducto.requestFocus();
+                codigoProducto.selectAll();
             }
-        } else {
-            // Si NO fue exitoso (por código duplicado), no limpiamos nada.
-            // Ponemos el foco en el código de barras para que lo corrija.
-            codigoProducto.requestFocus();
-            codigoProducto.selectAll();
-        }
 
-    } catch (NumberFormatException e) {
-        new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
-    } 
+        } catch (NumberFormatException e) {
+            new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
+        }
 
     }//GEN-LAST:event_btnGuardarProductoActionPerformed
 
@@ -465,37 +475,37 @@ btnGuardarProducto.setMaximumSize(d);
 
     private void btnGuardarProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnGuardarProductoKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-         int verifAux=Integer.parseInt(verificador.getText());
-        if(verifAux==4){
-            verifAux=2;
-        }
-           if(verifAux==3){
-            verifAux=1;
-        }
-        
-        Controlador.ControladorProducto objetoProducto = new Controlador.ControladorProducto();
-        Mensaje mj = objetoProducto.agregarProducto(codigoProducto, descripcionProducto,
-                costoProducto, VentaProducto, stockProducto, proveedorProducto, rubroProducto,
-                verifAux, tab, menj,null);
-
-        tab = null;
-
-        if (Integer.parseInt(verificador.getText()) == 4||Integer.parseInt(verificador.getText()) == 3) {
-            try {
-                this.setClosed(true);
-
-            } catch (PropertyVetoException ex) {
-                Logger.getLogger(FormFacturar.class.getName()).log(Level.SEVERE, null, ex);
+            int verifAux = Integer.parseInt(verificador.getText());
+            if (verifAux == 4) {
+                verifAux = 2;
             }
-        }
-          if (mj.getCodigo() == 1) {
-            limpiarCampos();
-                    ControladorProducto cc = new ControladorProducto();
-        cc.verCodigoDisponlible(codigoProducto);
-        }
-        if (mj != null) {
-            mostrarAlerta(mj.getMensaje(), mj.getCodigo());
-        }
+            if (verifAux == 3) {
+                verifAux = 1;
+            }
+
+            Controlador.ControladorProducto objetoProducto = new Controlador.ControladorProducto();
+            Mensaje mj = objetoProducto.agregarProducto(codigoProducto, descripcionProducto,
+                    costoProducto, VentaProducto, stockProducto, proveedorProducto, rubroProducto,
+                    verifAux, tab, menj, null);
+
+            tab = null;
+
+            if (Integer.parseInt(verificador.getText()) == 4 || Integer.parseInt(verificador.getText()) == 3) {
+                try {
+                    this.setClosed(true);
+
+                } catch (PropertyVetoException ex) {
+                    Logger.getLogger(FormFacturar.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (mj.getCodigo() == 1) {
+                limpiarCampos();
+                ControladorProducto cc = new ControladorProducto();
+                cc.verCodigoDisponlible(codigoProducto);
+            }
+            if (mj != null) {
+                mostrarAlerta(mj.getMensaje(), mj.getCodigo());
+            }
         }
     }//GEN-LAST:event_btnGuardarProductoKeyPressed
     boolean fucuseadoprod = false;
@@ -506,25 +516,24 @@ btnGuardarProducto.setMaximumSize(d);
     }//GEN-LAST:event_txtBuscarProductoFocusGained
     boolean abreSlide = false;
     private void txtBuscarProductoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBuscarProductoFocusLost
-      
-             System.out.println("abreslide" + abreSlide);        
-        
-        if (abreSlide == true) {            
+
+        System.out.println("abreslide" + abreSlide);
+
+        if (abreSlide == true) {
             if (!listaProducto.isColumnSelected(0)) {
-                
+
                 Integer cod = null;
                 try {
                     cod = Integer.parseInt(txtBuscarProducto.getText());
                 } catch (Exception e) {
-                }                
-                editarProducto(cod, null,menj);                
+                }
+                editarProducto(cod, null, menj);
                 contenedorTabla.setVisible(false);
-                
+
             }
         }
-        
 
-     
+
     }//GEN-LAST:event_txtBuscarProductoFocusLost
 
     private void txtBuscarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtBuscarProductoActionPerformed
@@ -537,7 +546,7 @@ btnGuardarProducto.setMaximumSize(d);
 
     private void txtBuscarProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyReleased
         Controlador.ControladorVenta objetoVenta = new ControladorVenta();
-                abreSlide = true;
+        abreSlide = true;
         boolean returno = objetoVenta.buscarProducto(txtBuscarProducto, listaProducto, contenedorTabla, "ACTIVOS");
 
         if (evt.getKeyCode() == KeyEvent.VK_ENTER && !txtBuscarProducto.getText().equals("")) {
@@ -547,15 +556,10 @@ btnGuardarProducto.setMaximumSize(d);
 
             if (returno == false) {
                 contenedorTabla.setVisible(false);
-                mostrarAlerta("No se encontraron coincidencias.", 2);
+           new Alerta("No se encontraron coincidencias.", new java.awt.Color(255, 153, 51), null);
                 txtBuscarProducto.requestFocus();
                 txtBuscarProducto.selectAll();
-                codigoProducto.setText("");
-                costoProducto.setText("");
-                VentaProducto.setText("");
-                stockProducto.setText("");
-                proveedorProducto.setText("");
-                rubroProducto.setText("");
+            limpiarCampos();
 
             }
             if (txtBuscarProducto.getText().equals("")) {
@@ -687,76 +691,80 @@ btnGuardarProducto.setMaximumSize(d);
     }//GEN-LAST:event_codigoProductoKeyReleased
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-   limpiarCampos();
+        limpiarCampos();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-       
-    Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
-    Frame framePrincipal = null;
-    if (window instanceof Frame) {
-        framePrincipal = (Frame) window;
-    }
 
-    // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
-    // (Frame padre, modal true, este JInternalFrame para las alertas)
-    VentanaFactura diag = new VentanaFactura(framePrincipal, true, this,"rubro");
-    diag.setVisible(true); 
+        Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+        Frame framePrincipal = null;
+        if (window instanceof Frame) {
+            framePrincipal = (Frame) window;
+        }
 
-    // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
-    if (diag.isAceptado()) {
-        // Refrescamos el combo de rubros usando tu DAO de productos
-        DaoProducto dp = new DaoProducto();
-        dp.cargarComboGenerico(cbxRubro, 1);
-        
-        // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
-        // pero si querés una extra aquí, podés dejarla.
-    }
+        // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+        // (Frame padre, modal true, este JInternalFrame para las alertas)
+        VentanaFactura diag = new VentanaFactura(framePrincipal, true, this, "rubro");
+        diag.setVisible(true);
+
+        // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+        if (diag.isAceptado()) {
+            // Refrescamos el combo de rubros usando tu DAO de productos
+            DaoProducto dp = new DaoProducto();
+            dp.cargarComboGenerico(cbxRubro, 1);
+
+            // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+            // pero si querés una extra aquí, podés dejarla.
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-           
-    Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
-    Frame framePrincipal = null;
-    if (window instanceof Frame) {
-        framePrincipal = (Frame) window;
-    }
 
-    // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
-    // (Frame padre, modal true, este JInternalFrame para las alertas)
-    VentanaFactura diag = new VentanaFactura(framePrincipal, true, this,"proveedor");
-    diag.setVisible(true); 
+        Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+        Frame framePrincipal = null;
+        if (window instanceof Frame) {
+            framePrincipal = (Frame) window;
+        }
 
-    // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
-    if (diag.isAceptado()) {
-        // Refrescamos el combo de rubros usando tu DAO de productos
-        DaoProducto dp = new DaoProducto();
-        dp.cargarComboGenerico(cbxRubro, 2);
-        
-        // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
-        // pero si querés una extra aquí, podés dejarla.
-    }
+        // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+        // (Frame padre, modal true, este JInternalFrame para las alertas)
+        VentanaFactura diag = new VentanaFactura(framePrincipal, true, this, "proveedor");
+        diag.setVisible(true);
+
+        // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+        if (diag.isAceptado()) {
+            // Refrescamos el combo de rubros usando tu DAO de productos
+            DaoProducto dp = new DaoProducto();
+            dp.cargarComboGenerico(cbxRubro, 2);
+
+            // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+            // pero si querés una extra aquí, podés dejarla.
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
-private void limpiarCampos() {
-    // 1. Limpiar campos de texto
-    txtId.setText("");
-    // codigoProducto.setText(""); // Ya no lo limpiamos a mano, lo hará el método de abajo
-    descripcionProducto.setText("");
-    costoProducto.setText("");
-    VentaProducto.setText("");
-    stockProducto.setText("");
-    
-    // 2. Restablecer Combos
-    if (cbxRubro.getItemCount() > 0) cbxRubro.setSelectedIndex(0);
-    if (cbxProveedor.getItemCount() > 0) cbxProveedor.setSelectedIndex(0);
-    
-    // 3. AUTO-GENERAR EL SIGUIENTE CÓDIGO DE BARRAS
-    Controlador.DaoProducto dao = new Controlador.DaoProducto();
-    dao.verCodigoDisponible(codigoProducto); // Esto pone el número sugerido en el JTextField
-    
-    // 4. Devolver el foco a la descripción (ya que el código se puso solo)
-    descripcionProducto.requestFocus();
-}
+    private void limpiarCampos() {
+        // 1. Limpiar campos de texto
+        txtId.setText("");
+        // codigoProducto.setText(""); // Ya no lo limpiamos a mano, lo hará el método de abajo
+        descripcionProducto.setText("");
+        costoProducto.setText("");
+        VentaProducto.setText("");
+        stockProducto.setText("");
+
+        // 2. Restablecer Combos
+        if (cbxRubro.getItemCount() > 0) {
+            cbxRubro.setSelectedIndex(0);
+        }
+        if (cbxProveedor.getItemCount() > 0) {
+            cbxProveedor.setSelectedIndex(0);
+        }
+
+        // 3. AUTO-GENERAR EL SIGUIENTE CÓDIGO DE BARRAS
+        Controlador.DaoProducto dao = new Controlador.DaoProducto();
+        dao.verCodigoDisponible(codigoProducto); // Esto pone el número sugerido en el JTextField
+
+        // 4. Devolver el foco a la descripción (ya que el código se puso solo)
+        descripcionProducto.requestFocus();
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField VentaProducto;
     private javax.swing.JButton btnGuardarProducto;

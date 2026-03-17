@@ -10,6 +10,7 @@ import Controlador.ControladorCliente;
 import Controlador.ControladorProducto;
 import Controlador.ControladorVenta;
 import Controlador.DaoProducto;
+import Controlador.VentanaFactura;
 import Modelos.Mensaje;
 import Modelos.ModeloCliente;
 import Modelos.ModeloProducto;
@@ -46,6 +47,9 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import Modelos.ItemSeleccionable;
+import java.awt.Frame;
+import java.awt.Window;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -73,8 +77,9 @@ verificador.setVisible(false);
 // Cargar Proveedores (Tipo 2)
 dp.cargarComboGenerico(cbxProveedor, 2);
         
-        ControladorProducto cc = new ControladorProducto();
-        cc.verCodigoDisponlible(codigoProducto);
+    
+      
+      dp       .verCodigoDisponible(codigoProducto);
         if (verificador1 == 2 || verificador1 == 4) {
             verificador.setText(verificador1.toString());
             jLabel8.setText("EDITAR PRODUCTO");
@@ -94,95 +99,6 @@ btnGuardarProducto.setMinimumSize(d);
 btnGuardarProducto.setMaximumSize(d);
     }
 
-    private Timer alertaTimer = null;
-    private AWTEventListener tecladoGlobalListener = null;
-  
-   public void mostrarAlerta(String palabra, Integer codigo) {
-    final JPanel glass = (JPanel) this.getGlassPane();
-    
-    // 1. Limpieza de procesos anteriores
-    if (alertaTimer != null && alertaTimer.isRunning()) alertaTimer.stop();
-    if (tecladoGlobalListener != null) {
-        Toolkit.getDefaultToolkit().removeAWTEventListener(tecladoGlobalListener);
-    }
-    
-    glass.removeAll();
-    glass.setLayout(new GridBagLayout()); // Usamos GridBag para posicionar arriba
-
-    // 2. Configuración de Posición (Arriba)
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.anchor = GridBagConstraints.NORTH; // Lo pega al techo
-    gbc.insets = new Insets(20, 0, 0, 0);  // Margen de 20px desde arriba
-    gbc.weighty = 1.0; // Empuja el resto del espacio hacia abajo
-
-    // 3. Crear el Popup
-    JPanel popup = new JPanel();
-    popup.setLayout(new BoxLayout(popup, BoxLayout.Y_AXIS));
-    // Borde redondeado original de tu código
-    popup.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 8, true));
-
-    // 4. Cargar Icono (Ruta relativa corregida)
-    // Cambiá "advertencia.png" por el nombre exacto de tu archivo en src
-    ImageIcon iconoOriginal = new ImageIcon(getClass().getResource("/main/Imagenes/advertencia.png"));
-    Image imgEscalada = iconoOriginal.getImage().getScaledInstance(22, 22, Image.SCALE_SMOOTH);
-    ImageIcon icono = new ImageIcon(imgEscalada);
-
-    String txtTitulo = "";
-    Color colorFondo;
-    switch (codigo) {
-        case 1: txtTitulo = "EXITO:"; colorFondo = new Color(154, 205, 50, 220); break;
-        case 2: txtTitulo = "ATENCION:"; colorFondo = new Color(255, 120, 0, 220); break;
-        case 3: txtTitulo = "ADVERTENCIA:"; colorFondo = new Color(255, 0, 0, 220); break;
-        case 4: txtTitulo = "ERROR:"; colorFondo = new Color(150, 150, 150, 220); break;
-        default: txtTitulo = "AVISO:"; colorFondo = new Color(100, 100, 100, 220);
-    }
-    popup.setBackground(colorFondo);
-
-    // 5. Etiquetas con tu fuente original "consolass"
-    JLabel titulo = new JLabel(txtTitulo, icono, JLabel.LEFT);
-    titulo.setFont(new Font("consolass", Font.BOLD, 22));
-    titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-   JLabel contenido = new JLabel("<html><center>"+palabra+"</center></html>");
-    contenido.setFont(new Font("consolass", Font.BOLD, 16));
-    popup.setMinimumSize(new Dimension(320,80));
-    contenido.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-    popup.add(titulo);
-    popup.add(contenido);
-
-    glass.add(popup, gbc); // Agregamos con la configuración de posición
-    glass.setVisible(true);
-    glass.revalidate();
-    glass.repaint();
-
-    // 6. Lógica de Cierre (Click, Tecla o Tiempo)
-    Runnable cerrarAccion = () -> {
-        glass.setVisible(false);
-        glass.removeAll();
-        if (alertaTimer != null) alertaTimer.stop();
-        if (tecladoGlobalListener != null) {
-            Toolkit.getDefaultToolkit().removeAWTEventListener(tecladoGlobalListener);
-        }
-    };
-
-    glass.addMouseListener(new MouseAdapter() {
-        @Override public void mousePressed(MouseEvent e) { cerrarAccion.run(); }
-    });
-
-    tecladoGlobalListener = event -> {
-        if (event instanceof KeyEvent && event.getID() == KeyEvent.KEY_PRESSED) {
-            cerrarAccion.run();
-        }
-    };
-    Toolkit.getDefaultToolkit().addAWTEventListener(tecladoGlobalListener, AWTEvent.KEY_EVENT_MASK);
-
-    alertaTimer = new Timer(5000, e -> cerrarAccion.run());
-    alertaTimer.setRepeats(false);
-    alertaTimer.start();
-}
 
     JTable tab = new JTable();
     JLabel menj = null;
@@ -419,10 +335,20 @@ btnGuardarProducto.setMaximumSize(d);
         jPanel1.add(cbxRubro, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 180, 150, -1));
 
         jButton1.setText("+");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 150, -1, -1));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 180, -1, -1));
 
         jButton3.setText("+");
-        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 180, -1, -1));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 150, -1, -1));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, 320, 280));
 
@@ -438,56 +364,72 @@ btnGuardarProducto.setMaximumSize(d);
     }//GEN-LAST:event_codigoProductoActionPerformed
 
     private void btnGuardarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarProductoActionPerformed
-         try {
-        // 1. Crear el objeto Producto y cargarle los datos de tus JTextFields
+   try {
         Modelos.Producto pro = new Modelos.Producto();
         
-        // Si el campo ID no está vacío (para modificaciones), lo asignamos
         if (!txtId.getText().isEmpty()){
             pro.setId(Integer.parseInt(txtId.getText()));
         }
         
-        // Mapeo de tus campos específicos
         pro.setCodigoBarras(codigoProducto.getText());
         pro.setNombre(descripcionProducto.getText());
         pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
         pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
         pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
-        pro.setIdProveedor(Integer.parseInt(proveedorProducto.getText()));
-        pro.setIdCategoria(Integer.parseInt(rubroProducto.getText()));
 
-        // 2. Lógica de tus verificadores (mantengo tu estructura original)
+        // 1. Obtener ID de Rubro
+        ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
+        if (itemRubro != null && itemRubro.getId() > 0) {
+            pro.setIdCategoria(itemRubro.getId());
+        } else {
+            new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
+            return;
+        }
+
+        // 2. Obtener ID de Proveedor
+        ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
+        if (itemProv != null && itemProv.getId() > 0) {
+            pro.setIdProveedor(itemProv.getId());
+        } else {
+            new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
+            return;
+        }
+
         int verifAux = Integer.parseInt(verificador.getText());
         int modoEjecucion = verifAux;
-        
-        if (verifAux == 4) modoEjecucion = 2; // Caso modificación
-        if (verifAux == 3) modoEjecucion = 1; // Caso nuevo desde facturación
+        if (verifAux == 4) modoEjecucion = 2; 
+        if (verifAux == 3) modoEjecucion = 1; 
 
-        // 3. Llamar al DAO pasándole el objeto empaquetado
+        // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
         Controlador.DaoProducto dao = new Controlador.DaoProducto();
-        dao.agregarProducto(pro, modoEjecucion, tab, menj);
+        boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
 
-        // 4. Limpiar referencia de tabla
-        tab = null;
-
-        // 5. Lógica de cierre de ventana para casos 3 y 4
-        int vFinal = Integer.parseInt(verificador.getText());
-        if (vFinal == 4 || vFinal == 3) {
-            try {
-                this.setClosed(true);
-            } catch (java.beans.PropertyVetoException ex) {
-                java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
+        if (guardadoExitoso) {
+            tab = null;
+            int vFinal = Integer.parseInt(verificador.getText());
+            
+            if (vFinal == 4 || vFinal == 3) {
+                try {
+                    this.setClosed(true);
+                } catch (java.beans.PropertyVetoException ex) {
+                    java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                }
+            } else {
+                // Aquí limpiamos porque sabemos que los datos ya están en la BD
+                limpiarCampos();
+                new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
             }
         } else {
-            // Si no se cierra la ventana, podrías llamar a un método para limpiar los campos
-            limpiarCampos();
+            // Si NO fue exitoso (por código duplicado), no limpiamos nada.
+            // Ponemos el foco en el código de barras para que lo corrija.
+            codigoProducto.requestFocus();
+            codigoProducto.selectAll();
         }
 
     } catch (NumberFormatException e) {
-        // Alerta personalizada si el usuario ingresa letras en campos numéricos
-        new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69));
-    }
-        
+        new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
+    } 
 
     }//GEN-LAST:event_btnGuardarProductoActionPerformed
 
@@ -748,16 +690,73 @@ btnGuardarProducto.setMaximumSize(d);
    limpiarCampos();
     }//GEN-LAST:event_jButton2ActionPerformed
 
-  private void   limpiarCampos(){
-  descripcionProducto.setText("");
-  costoProducto.setText("");
-  VentaProducto.setText("");
-  stockProducto.setText("");
-  proveedorProducto.setText("");
-  rubroProducto.setText("");
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+       
+    Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+    Frame framePrincipal = null;
+    if (window instanceof Frame) {
+        framePrincipal = (Frame) window;
+    }
 
-  
-  };
+    // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+    // (Frame padre, modal true, este JInternalFrame para las alertas)
+    VentanaFactura diag = new VentanaFactura(framePrincipal, true, this,"rubro");
+    diag.setVisible(true); 
+
+    // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+    if (diag.isAceptado()) {
+        // Refrescamos el combo de rubros usando tu DAO de productos
+        DaoProducto dp = new DaoProducto();
+        dp.cargarComboGenerico(cbxRubro, 1);
+        
+        // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+        // pero si querés una extra aquí, podés dejarla.
+    }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+           
+    Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+    Frame framePrincipal = null;
+    if (window instanceof Frame) {
+        framePrincipal = (Frame) window;
+    }
+
+    // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+    // (Frame padre, modal true, este JInternalFrame para las alertas)
+    VentanaFactura diag = new VentanaFactura(framePrincipal, true, this,"proveedor");
+    diag.setVisible(true); 
+
+    // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+    if (diag.isAceptado()) {
+        // Refrescamos el combo de rubros usando tu DAO de productos
+        DaoProducto dp = new DaoProducto();
+        dp.cargarComboGenerico(cbxRubro, 2);
+        
+        // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+        // pero si querés una extra aquí, podés dejarla.
+    }
+    }//GEN-LAST:event_jButton3ActionPerformed
+private void limpiarCampos() {
+    // 1. Limpiar campos de texto
+    txtId.setText("");
+    // codigoProducto.setText(""); // Ya no lo limpiamos a mano, lo hará el método de abajo
+    descripcionProducto.setText("");
+    costoProducto.setText("");
+    VentaProducto.setText("");
+    stockProducto.setText("");
+    
+    // 2. Restablecer Combos
+    if (cbxRubro.getItemCount() > 0) cbxRubro.setSelectedIndex(0);
+    if (cbxProveedor.getItemCount() > 0) cbxProveedor.setSelectedIndex(0);
+    
+    // 3. AUTO-GENERAR EL SIGUIENTE CÓDIGO DE BARRAS
+    Controlador.DaoProducto dao = new Controlador.DaoProducto();
+    dao.verCodigoDisponible(codigoProducto); // Esto pone el número sugerido en el JTextField
+    
+    // 4. Devolver el foco a la descripción (ya que el código se puso solo)
+    descripcionProducto.requestFocus();
+}
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField VentaProducto;
     private javax.swing.JButton btnGuardarProducto;

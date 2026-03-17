@@ -20,8 +20,10 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComboBox;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 public class DaoProducto {
@@ -29,50 +31,79 @@ public class DaoProducto {
     private final Color COLOR_EXITO = new Color(40, 167, 69);
     private final Color COLOR_ERROR = new Color(220, 53, 69);
 
-    public void agregarProducto(Producto pro, int verifAux, JTable tab, JLabel menj) {
-        boolean resultado;
-        
-        if (verifAux == 1) {
-            resultado = registrar(pro);
-        } else {
-            resultado = modificar(pro);
-        }
-
-        // Si la operación fue exitosa y pasaste una tabla, la refrescamos
-        if (resultado && tab != null) {
-            listarEnTabla(tab);
-        }
-        
-        // Si pasaste un label, podemos poner un texto breve
-        if (menj != null) {
-            menj.setText(resultado ? "Operación exitosa" : "Error en base de datos");
-        }
+   public boolean agregarProducto(Producto pro, int verifAux, JTable tab, JLabel menj, JInternalFrame internal) {
+    boolean resultado;
+    
+    // 1. Ejecutamos la operación y capturamos el éxito o fallo
+    if (verifAux == 1) {
+        resultado = registrar(pro, internal);
+    } else {
+        resultado = modificar(pro, internal);
     }
 
-    private boolean registrar(Producto pro) {
-        String sql = "INSERT INTO productos (codigo_barras, nombre, precio_venta, precio_compra, stock, id_categoria, id_proveedor) VALUES (?,?,?,?,?,?,?)";
-        CConexion conexion = new CConexion();
-        try (Connection con = conexion.estableceConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, pro.getCodigoBarras());
-            ps.setString(2, pro.getNombre());
-            ps.setBigDecimal(3, pro.getPrecioVenta());
-            ps.setBigDecimal(4, pro.getPrecioCompra());
-            ps.setBigDecimal(5, pro.getStock());
-            ps.setInt(6, pro.getIdCategoria());
-            ps.setInt(7, pro.getIdProveedor());
-
-            ps.execute();
-            new Alerta("¡Producto Registrado!", COLOR_EXITO);
-            return true;
-        } catch (SQLException e) {
-            new Alerta("Error al registrar: " + e.getMessage(), COLOR_ERROR);
-            return false;
-        }
+    // 2. Si fue exitosa y hay una tabla, refrescamos la vista
+    if (resultado && tab != null) {
+        listarEnTabla(tab, internal);
+    }
+    
+    // 3. Actualizamos el mensaje visual si existe el label
+    if (menj != null) {
+        menj.setText(resultado ? "Operación exitosa" : "Error en base de datos");
     }
 
-    private boolean modificar(Producto pro) {
+    // 4. RETORNAMOS el resultado para que el botón sepa si limpiar o no los campos
+    return resultado;
+}
+
+private boolean registrar(Producto pro, JInternalFrame internal) {
+    // 1. Validar si el código de barras ya existe
+    if (existeCodigoBarras(pro.getCodigoBarras())) {
+        new Alerta("El código de barras ya está registrado", new Color(231, 76, 60), internal);
+        return false;
+    }
+
+    String sql = "INSERT INTO productos (codigo_barras, nombre, precio_venta, precio_compra, stock, id_categoria, id_proveedor) VALUES (?,?,?,?,?,?,?)";
+    CConexion conexion = new CConexion();
+    
+    try (Connection con = conexion.estableceConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, pro.getCodigoBarras());
+        ps.setString(2, pro.getNombre().toUpperCase());
+        ps.setBigDecimal(3, pro.getPrecioVenta());
+        ps.setBigDecimal(4, pro.getPrecioCompra());
+        ps.setBigDecimal(5, pro.getStock());
+        ps.setInt(6, pro.getIdCategoria());
+        ps.setInt(7, pro.getIdProveedor());
+
+        ps.execute();
+        new Alerta("¡Producto Registrado!", new Color(46, 204, 113), internal);
+        return true;
+    } catch (SQLException e) {
+        new Alerta("Error al registrar: " + e.getMessage(), new Color(231, 76, 60), internal);
+        return false;
+    }
+}
+
+// MÉTODO AUXILIAR PARA VALIDAR DUPLICADOS
+private boolean existeCodigoBarras(String codigo) {
+    String sql = "SELECT COUNT(*) FROM productos WHERE codigo_barras = ?";
+    CConexion conexion = new CConexion();
+    try (Connection con = conexion.estableceConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        
+        ps.setString(1, codigo);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+
+    private boolean modificar(Producto pro,JInternalFrame internal) {
         String sql = "UPDATE productos SET codigo_barras=?, nombre=?, precio_venta=?, precio_compra=?, stock=?, id_categoria=?, id_proveedor=? WHERE id_producto=?";
         CConexion conexion = new CConexion();
         try (Connection con = conexion.estableceConexion();
@@ -89,17 +120,17 @@ public class DaoProducto {
 
             int res = ps.executeUpdate();
             if (res > 0) {
-                new Alerta("¡Producto Actualizado!", COLOR_EXITO);
+                new Alerta("¡Producto Actualizado!", COLOR_EXITO,internal);
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            new Alerta("Error al modificar: " + e.getMessage(), COLOR_ERROR);
+            new Alerta("Error al modificar: " + e.getMessage(), COLOR_ERROR,internal);
             return false;
         }
     }
 
-    public void listarEnTabla(JTable tabla) {
+    public void listarEnTabla(JTable tabla,JInternalFrame internal) {
         String sql = "SELECT * FROM productos ORDER BY id_producto DESC";
         CConexion conexion = new CConexion();
         DefaultTableModel modelo = (DefaultTableModel) tabla.getModel();
@@ -122,7 +153,7 @@ public class DaoProducto {
                 modelo.addRow(fila);
             }
         } catch (SQLException e) {
-            new Alerta("Error al listar: " + e.getMessage(), COLOR_ERROR);
+            new Alerta("Error al listar: " + e.getMessage(), COLOR_ERROR,internal);
         }
     }
     
@@ -179,5 +210,92 @@ public void cargarComboGenerico(JComboBox<ItemSeleccionable> combo, int tipo) {
     } catch (SQLException e) {
         e.printStackTrace();
     }
+}
+
+
+    public boolean insertar(String tabla, int id, String nombre) throws SQLException {
+        // Usamos el nombre de la tabla de forma dinámica
+        String sql = "INSERT INTO " + tabla + " (id_" + tabla + ", nombre) VALUES (?, ?)";
+       CConexion conexion = new CConexion();
+         try (Connection con = conexion.estableceConexion();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, id);
+            pstmt.setString(2, nombre.trim().toUpperCase());
+            
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+public boolean existeID(String tabla, int id) {
+    String sql = "SELECT COUNT(*) FROM " + tabla + " WHERE id_" + tabla + " = ?";
+       CConexion conexion = new CConexion();
+         try (Connection con = conexion.estableceConexion();
+         PreparedStatement pstmt = con.prepareStatement(sql)) {
+        
+        pstmt.setInt(1, id);
+        ResultSet rs = pstmt.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt(1) > 0; // Si es mayor a 0, el ID ya existe
+        }
+    } catch (SQLException e) {
+        System.out.println("Error al verificar ID: " + e.getMessage());
+    }
+    return false;
+}
+public int obtenerSiguienteIDDisponible(String tabla) {
+    String sql = "SELECT MAX(id_" + tabla + ") FROM " + tabla;
+         CConexion conexion = new CConexion();
+         try (Connection con = conexion.estableceConexion();
+         PreparedStatement pstmt = con.prepareStatement(sql)) {
+        
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            int maxId = rs.getInt(1);
+            return maxId + 1; // Retorna el siguiente
+        }
+    } catch (SQLException e) {
+        System.out.println("Error al obtener ID sugerido: " + e.getMessage());
+    }
+    return 1; // Si la tabla está vacía, empieza en 1
+}
+
+public Integer verCodigoDisponible(JTextField tex) {
+    Configuracion.CConexion objetoConexion = new Configuracion.CConexion();
+    
+    // Cambiamos id_producto por codigo_barras. 
+    // Usamos CAST para asegurar que SQLite lo trate como número para sumar (+1)
+    String sql = "SELECT CASE " +
+                 "  WHEN (SELECT COUNT(codigo_barras) FROM productos) = 0 THEN 1 " +
+                 "  ELSE (SELECT CAST(t1.codigo_barras AS INTEGER) + 1 " +
+                 "        FROM productos AS t1 " +
+                 "        LEFT JOIN productos AS t2 ON CAST(t1.codigo_barras AS INTEGER) + 1 = CAST(t2.codigo_barras AS INTEGER) " +
+                 "        WHERE t2.codigo_barras IS NULL " +
+                 "        ORDER BY CAST(t1.codigo_barras AS INTEGER) LIMIT 1) " +
+                 "END AS disponible";
+
+    Integer disponible = 1;
+
+    try (Connection con = objetoConexion.estableceConexion();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            disponible = rs.getInt("disponible");
+            
+            if (disponible <= 0) disponible = 1;
+            
+            if (tex != null) {
+                // Seteamos el código de barras sugerido en el JTextField
+                tex.setText(String.valueOf(disponible));
+            }
+        }
+
+    } catch (Exception e) {
+        new Alerta("Error al buscar Código de Barras disponible", new java.awt.Color(231, 76, 60), null);
+        e.printStackTrace();
+    }
+    
+    return disponible;
 }
 }

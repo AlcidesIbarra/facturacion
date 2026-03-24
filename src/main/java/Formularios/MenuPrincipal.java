@@ -5,6 +5,7 @@
 package Formularios;
 
 import Controlador.ControladorAdministracion;
+import Controlador.DaoProducto;
 import Controlador.EscritorioFondo;
 import static Controlador.PaintMenu.color;
 import java.awt.AlphaComposite;
@@ -327,6 +328,7 @@ public EscritorioFondo(String nombreArchivo) {
         jMenuItem23 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem8 = new javax.swing.JMenuItem();
+        jMenuItem34 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem12 = new javax.swing.JMenuItem();
@@ -604,6 +606,15 @@ public EscritorioFondo(String nombreArchivo) {
             }
         });
         jMenu3.add(jMenuItem8);
+
+        jMenuItem34.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jMenuItem34.setText("Importacion Masiva");
+        jMenuItem34.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem34ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jMenuItem34);
 
         jMenuBar1.add(jMenu3);
 
@@ -915,7 +926,8 @@ public EscritorioFondo(String nombreArchivo) {
     }//GEN-LAST:event_jMenuItem20ActionPerformed
 
     private void jMenu3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu3ActionPerformed
-        // TODO add your handling code here:
+
+     //   System.out.println("probando");
     }//GEN-LAST:event_jMenu3ActionPerformed
 
     private void jMenuItem20MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem20MousePressed
@@ -1403,6 +1415,12 @@ public EscritorioFondo(String nombreArchivo) {
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenu7MouseClicked
 
+    private void jMenuItem34ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem34ActionPerformed
+        System.out.println("probando");
+        DaoProducto dp = new DaoProducto();
+    dp.importarConReporte(this);
+    }//GEN-LAST:event_jMenuItem34ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1488,6 +1506,7 @@ public EscritorioFondo(String nombreArchivo) {
     public static javax.swing.JMenuItem jMenuItem31;
     public static javax.swing.JMenuItem jMenuItem32;
     public static javax.swing.JMenuItem jMenuItem33;
+    public static javax.swing.JMenuItem jMenuItem34;
     public static javax.swing.JMenuItem jMenuItem4;
     public static javax.swing.JMenuItem jMenuItem5;
     public static javax.swing.JMenuItem jMenuItem6;

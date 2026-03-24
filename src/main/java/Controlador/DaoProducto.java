@@ -7,6 +7,7 @@ package Controlador;
 import Configuracion.CConexion;
 import Modelos.ItemSeleccionable;
 import Modelos.Producto;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,14 +18,30 @@ import java.sql.SQLException;
  */
 import java.sql.*;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.io.FileInputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.DataFormatter;
 
 public class DaoProducto {
     // Definimos colores para reutilizar
@@ -338,5 +355,143 @@ public Producto obtenerproducto(Integer codigo) {
     }
     
     return pro;
+}
+
+
+
+
+public void importarConReporte(Component parent) {
+    JFileChooser fc = new JFileChooser();
+    fc.setDialogTitle("Seleccionar Excel de Productos");
+    if (fc.showOpenDialog(parent) != JFileChooser.APPROVE_OPTION) return;
+
+    StringBuilder logErrores = new StringBuilder();
+    int exitos = 0;
+    int errores = 0;
+
+    Configuracion.CConexion conexion = new Configuracion.CConexion();
+    
+    // Abrimos todo en un solo bloque try-with-resources
+    try (Connection con = conexion.estableceConexion();
+         FileInputStream fis = new FileInputStream(fc.getSelectedFile());
+         Workbook workbook = WorkbookFactory.create(fis)) {
+        
+        // --- MODO VELOCIDAD ACTIVADO ---
+        con.setAutoCommit(false); 
+
+        Sheet hoja = workbook.getSheetAt(0);
+        DataFormatter formatter = new DataFormatter();
+
+        for (int i = 1; i <= hoja.getLastRowNum(); i++) {
+            Row fila = hoja.getRow(i);
+            if (fila == null) continue;
+
+            try {
+                Modelos.Producto pro = new Modelos.Producto();
+                
+                String codigo = getCellValue(fila.getCell(0)).trim();
+                String nombre = getCellValue(fila.getCell(1)).trim();
+                
+                if (codigo.isEmpty() || nombre.isEmpty()) throw new Exception("Código o Nombre vacíos");
+
+                pro.setCodigoBarras(codigo);
+                pro.setNombre(nombre.toUpperCase());
+
+                // Manejo de comas y celdas vacías en números
+                String pVenta = getCellValue(fila.getCell(2)).replace(",", ".");
+                String pCompra = getCellValue(fila.getCell(3)).replace(",", ".");
+                String stockVal = getCellValue(fila.getCell(4)).replace(",", ".");
+
+                pro.setPrecioVenta(new BigDecimal(pVenta.isEmpty() ? "0" : pVenta));
+                pro.setPrecioCompra(new BigDecimal(pCompra.isEmpty() ? "0" : pCompra));
+                pro.setStock(new BigDecimal(stockVal.isEmpty() ? "0" : stockVal));
+
+                // Obtener IDs de Rubro y Proveedor (los crea si no existen)
+                pro.setIdCategoria(obtenerIdOCrearConConexion(con, "rubro", getCellValue(fila.getCell(5))));
+                pro.setIdProveedor(obtenerIdOCrearConConexion(con, "proveedor", getCellValue(fila.getCell(6))));
+
+                // Guardar o Actualizar
+                if (registrarOActualizarConConexion(con, pro)) {
+                    exitos++;
+                }
+
+            } catch (Exception ex) {
+                errores++;
+                logErrores.append("Fila ").append(i + 1).append(": ").append(ex.getMessage()).append("\n");
+            }
+        }
+
+        // --- COMMIT: Guardamos todo de un solo golpe ---
+        con.commit(); 
+        
+        String resumen = "Importación finalizada.\nÉxitos: " + exitos + "\nErrores: " + errores;
+        Color colorFinal = (errores == 0) ? new Color(46, 204, 113) : new Color(255, 153, 51);
+        
+        new Alerta(resumen, colorFinal, (Container) parent);
+        if (errores > 0) mostrarReporteErrores(logErrores.toString(), parent);
+
+    } catch (Exception e) {
+        new Alerta("Error crítico al procesar Excel", new Color(231, 76, 60), (Container) parent);
+        e.printStackTrace();
+    }
+}
+private boolean registrarOActualizarConConexion(Connection con, Modelos.Producto pro) throws SQLException {
+    // SQLITE: Si el codigo_barras ya existe, actualiza los campos. Si no, inserta nuevo.
+    String sql = "INSERT INTO productos (codigo_barras, nombre, precio_venta, precio_compra, stock, id_categoria, id_proveedor) " +
+                 "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                 "ON CONFLICT(codigo_barras) DO UPDATE SET " +
+                 "nombre=excluded.nombre, precio_venta=excluded.precio_venta, precio_compra=excluded.precio_compra, " +
+                 "stock=excluded.stock, id_categoria=excluded.id_categoria, id_proveedor=excluded.id_proveedor";
+               
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, pro.getCodigoBarras());
+        ps.setString(2, pro.getNombre());
+        ps.setBigDecimal(3, pro.getPrecioVenta());
+        ps.setBigDecimal(4, pro.getPrecioCompra());
+        ps.setBigDecimal(5, pro.getStock());
+        ps.setInt(6, pro.getIdCategoria());
+        ps.setInt(7, pro.getIdProveedor());
+        return ps.executeUpdate() > 0;
+    }
+}
+
+private int obtenerIdOCrearConConexion(Connection con, String tabla, String nombre) throws SQLException {
+    if (nombre == null || nombre.trim().isEmpty()) return 1; 
+    String nom = nombre.trim().toUpperCase();
+    String colId = "id_" + tabla;
+
+    // Buscar si existe
+    String sqlBusq = "SELECT " + colId + " FROM " + tabla + " WHERE nombre = ?";
+    try (PreparedStatement ps = con.prepareStatement(sqlBusq)) {
+        ps.setString(1, nom);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+    }
+
+    // Crear si no existe
+    String sqlIns = "INSERT INTO " + tabla + " (nombre) VALUES (?)";
+    try (PreparedStatement ps = con.prepareStatement(sqlIns, Statement.RETURN_GENERATED_KEYS)) {
+        ps.setString(1, nom);
+        ps.executeUpdate();
+        try (ResultSet rs = ps.getGeneratedKeys()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+    }
+    return 1;
+}
+
+private String getCellValue(Cell cell) {
+    if (cell == null) return "";
+    DataFormatter formatter = new DataFormatter();
+    return formatter.formatCellValue(cell).trim();
+}
+
+private void mostrarReporteErrores(String reporte, Component parent) {
+    JTextArea textArea = new JTextArea(reporte);
+    textArea.setEditable(false);
+    JScrollPane scroll = new JScrollPane(textArea);
+    scroll.setPreferredSize(new Dimension(450, 250));
+    JOptionPane.showMessageDialog(parent, scroll, "Detalle de Errores", JOptionPane.WARNING_MESSAGE);
 }
 }

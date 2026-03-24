@@ -1436,10 +1436,6 @@ iraotro.addActionListener(e -> {
         }
     }//GEN-LAST:event_listaClientesMouseClicked
 
-    private void fieldDireccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fieldDireccionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDireccionActionPerformed
-
     private void btnFacturarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFacturarActionPerformed
       if (!prCosto.getText().equals("")) {
     Mensaje mj = null;
@@ -1552,10 +1548,6 @@ txtBuscarProducto.requestFocusInWindow();
     }
     }//GEN-LAST:event_btnAgregarActionPerformed
 
-    private void codigoProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_codigoProductoKeyPressed
-
-    }//GEN-LAST:event_codigoProductoKeyPressed
-
     private void fieldCantidadKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldCantidadKeyPressed
         Mensaje mj;
         Controlador.ControladorVenta objetoVenta = new ControladorVenta();
@@ -1649,38 +1641,56 @@ txtBuscarProducto.requestFocusInWindow();
     }//GEN-LAST:event_txtBuscarProductoKeyTyped
 
     private void txtBuscarProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyReleased
-        Controlador.ControladorVenta objetoVenta = new ControladorVenta();
-        boolean returno = objetoVenta.buscarProducto(txtBuscarProducto, listaProducto, contenedorTabla, "ACTIVOS");
-        abreslideProducto = true;
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER && !txtBuscarProducto.getText().equals("")) {
-            fucuseadoprod = false;
+     Controlador.ControladorVenta objetoVenta = new ControladorVenta();
+    
+    // 1. Ejecutamos la búsqueda (que ahora nos devuelve si hubo resultados)
+    boolean retorno = objetoVenta.buscarProducto(txtBuscarProducto, listaProducto, contenedorTabla, "ACTIVOS");
+    abreslideProducto = true;
+
+    // --- NUEVA LÓGICA: Si hay un solo resultado, procesar directamente ---
+    if (retorno && listaProducto.getRowCount() == 1) {
+        // Ocultamos la tabla de sugerencias de inmediato
+        contenedorTabla.setVisible(false);
+        
+        // Seleccionamos la única fila existente (índice 0)
+        listaProducto.setRowSelectionInterval(0, 0);
+        
+        // Llamamos a tu método para agregar el producto a la venta
+        // (Asegurate de que este método obtenga el ID de la fila 0 de listaProducto)
+      //  AgregarProducto(); 
+        
+        // Limpiamos el buscador para el próximo escaneo del lector
+        txtBuscarProducto.setText("");
+        txtBuscarProducto.requestFocus();
+        return; // Salimos para no ejecutar el resto de la lógica de la tabla
+    }
+
+    // --- LÓGICA ORIGINAL (Para cuando hay múltiples resultados o Enter) ---
+    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER && !txtBuscarProducto.getText().equals("")) {
+        fucuseadoprod = false;
+
+        if (retorno == false) {
+            contenedorTabla.setVisible(false);
+            mostrarAlerta("No se encontraron coincidencias.", 2);
+            txtBuscarProducto.requestFocus();
+            txtBuscarProducto.selectAll();
+            
+            // Limpieza de campos auxiliares
+            codigoProducto.setText("");
+            prCosto.setText("");
+            prVenta.setText("");
+            texfieldStock.setText("");
+            descripcionProd.setText("");
+        } else {
+            // Si hay varios, mandamos el foco a la tabla para elegir
             listaProducto.changeSelection(0, 0, false, false);
             listaProducto.requestFocus();
-
-            if (returno == false) {
-                contenedorTabla.setVisible(false);
-                mostrarAlerta("No se encontraron coincidencias.", 2);
-                txtBuscarProducto.requestFocus();
-                txtBuscarProducto.selectAll();
-                codigoProducto.setText("");
-                prCosto.setText("");
-                prVenta.setText("");
-                texfieldStock.setText("");
-                descripcionProd.setText("");
-
-            }
-            if (txtBuscarProducto.getText().equals("")) {
-                // txtBuscarProducto.requestFocus();
-            } else {
-                listaProducto.changeSelection(0, 0, false, false);
-                listaProducto.requestFocus();
-            }
-
         }
+    }
 
-        if (txtBuscarProducto.getText().equals("")) {
-            contenedorTabla.setVisible(false);
-        }
+    if (txtBuscarProducto.getText().equals("")) {
+        contenedorTabla.setVisible(false);
+    }
     }//GEN-LAST:event_txtBuscarProductoKeyReleased
 
     private void txtBuscarProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyPressed
@@ -1703,10 +1713,6 @@ txtBuscarProducto.requestFocusInWindow();
             prVenta.setBackground(ca.retornatexFieldF());
         }*/
     }//GEN-LAST:event_txtBuscarProductoFocusGained
-
-    private void fieldObservacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fieldObservacionesActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldObservacionesActionPerformed
     int indiceSeleccionadoEliminar = -1;
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
        int respuesta = JOptionPane.showConfirmDialog(null, "¿Desea cancelar la venta actual?", "Confirmar", JOptionPane.YES_NO_OPTION);
@@ -2295,24 +2301,6 @@ txtBuscarProducto.requestFocusInWindow();
         }      // TODO add your handling code here:
     }//GEN-LAST:event_fieldDniFocusLost
 
-    private void fieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDireccionFocusLost
-        if (!fieldDireccion.getText().equals("")) {
-            editarClienteUnid("DIRECCION");
-        }
-    }//GEN-LAST:event_fieldDireccionFocusLost
-
-    private void fieldTelefonoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldTelefonoFocusLost
-        if (!fieldTelefono.getText().equals("")) {
-            editarClienteUnid("TELEFONO");
-        }
-    }//GEN-LAST:event_fieldTelefonoFocusLost
-
-    private void diasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_diasFocusLost
-        if (!dias.getText().equals("")) {
-            editarClienteUnid("DIAS A PAGAR");
-        }
-    }//GEN-LAST:event_diasFocusLost
-
     private void fieldNombreKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldNombreKeyPressed
         if (!fieldNombre.equals("")) {
             btnSave.setEnabled(true);
@@ -2344,23 +2332,6 @@ txtBuscarProducto.requestFocusInWindow();
             }
         }
     }//GEN-LAST:event_fieldNombreKeyPressed
-
-    private void fieldDireccionKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldDireccionKeyPressed
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            editarClienteUnid("DIRECCION");
-            this.requestFocusInWindow();
-        }
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fieldDireccionKeyPressed
-
-    private void fieldTelefonoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldTelefonoKeyPressed
-
-    }//GEN-LAST:event_fieldTelefonoKeyPressed
-
-    private void diasKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_diasKeyPressed
-
-
-    }//GEN-LAST:event_diasKeyPressed
 
     private void limiteCompraKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_limiteCompraKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -2524,68 +2495,6 @@ txtBuscarProducto.requestFocusInWindow();
 
     }//GEN-LAST:event_texfieldStockKeyPressed
 
-    private void fieldTelefonoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldTelefonoKeyReleased
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            editarClienteUnid("TELEFONO");
-            this.requestFocusInWindow();
-        } else {
-            if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                    && evt.getKeyCode() != KeyEvent.VK_DELETE) {
-                char c = evt.getKeyChar();
-                String cadena = fieldTelefono.getText();
-
-                if (Character.isDigit(c)) {
-                    cadena = cadena.substring(0, cadena.length() - 1);
-
-                } else {
-                    mostrarAlerta("solo se aceptan numeros para este campo", 2);
-
-                    cadena = fieldTelefono.getText();
-
-                    if (cadena.length() > 1) {
-                        cadena = cadena.substring(0, cadena.length() - 1);
-                    } else {
-                        cadena = "";
-                    }
-                    fieldTelefono.setText(cadena);
-                    fieldTelefono.requestFocus();
-                }
-            }
-        }
-
-    }//GEN-LAST:event_fieldTelefonoKeyReleased
-
-    private void diasKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_diasKeyReleased
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            editarClienteUnid("DIAS A PAGAR");
-            this.requestFocusInWindow();
-        } else {
-            if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                    && evt.getKeyCode() != KeyEvent.VK_DELETE) {
-                char c = evt.getKeyChar();
-                String cadena = dias.getText();
-
-                if (Character.isDigit(c)) {
-                    cadena = cadena.substring(0, cadena.length() - 1);
-
-                } else {
-                    mostrarAlerta("solo se aceptan numeros para este campo", 2);
-
-                    cadena = dias.getText();
-
-                    if (cadena.length() > 1) {
-                        cadena = cadena.substring(0, cadena.length() - 1);
-                    } else {
-                        cadena = "";
-                    }
-                    dias.setText(cadena);
-                    dias.requestFocus();
-                }
-            }
-        }
-        // TODO add your handling code here:
-    }//GEN-LAST:event_diasKeyReleased
-
     private void texfieldStockKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_texfieldStockKeyReleased
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             if (editaFacturar.isSelected() || habilitaedicionStock == true) {
@@ -2706,30 +2615,6 @@ txtBuscarProducto.requestFocusInWindow();
         }
     }//GEN-LAST:event_mensajeadorPropertyChange
 
-    private void tablaPesosFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tablaPesosFocusLost
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaPesosFocusLost
-
-    private void tablaPesosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablaPesosMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaPesosMouseClicked
-
-    private void tablaPesosKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyPressed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaPesosKeyPressed
-
-    private void tablaPesosKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyReleased
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaPesosKeyReleased
-
-    private void tablaPesosKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyTyped
-        // TODO add your handling code here:
-    }//GEN-LAST:event_tablaPesosKeyTyped
-
-    private void codigoProductoPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_codigoProductoPropertyChange
-
-    }//GEN-LAST:event_codigoProductoPropertyChange
-
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
                                
     // Si el usuario hace click en el fondo de la ventana
@@ -2746,6 +2631,137 @@ txtBuscarProducto.requestFocusInWindow();
     }
 
     }//GEN-LAST:event_formMouseClicked
+
+    private void tablaPesosKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaPesosKeyTyped
+
+    private void tablaPesosKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaPesosKeyReleased
+
+    private void tablaPesosKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tablaPesosKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaPesosKeyPressed
+
+    private void tablaPesosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablaPesosMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaPesosMouseClicked
+
+    private void tablaPesosFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_tablaPesosFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tablaPesosFocusLost
+
+    private void codigoProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_codigoProductoKeyPressed
+
+    }//GEN-LAST:event_codigoProductoKeyPressed
+
+    private void codigoProductoPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_codigoProductoPropertyChange
+
+    }//GEN-LAST:event_codigoProductoPropertyChange
+
+    private void fieldObservacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fieldObservacionesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldObservacionesActionPerformed
+
+    private void fieldDireccionKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldDireccionKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            editarClienteUnid("DIRECCION");
+            this.requestFocusInWindow();
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldDireccionKeyPressed
+
+    private void fieldDireccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fieldDireccionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fieldDireccionActionPerformed
+
+    private void fieldDireccionFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldDireccionFocusLost
+        if (!fieldDireccion.getText().equals("")) {
+            editarClienteUnid("DIRECCION");
+        }
+    }//GEN-LAST:event_fieldDireccionFocusLost
+
+    private void fieldTelefonoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldTelefonoKeyReleased
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            editarClienteUnid("TELEFONO");
+            this.requestFocusInWindow();
+        } else {
+            if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
+                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
+                char c = evt.getKeyChar();
+                String cadena = fieldTelefono.getText();
+
+                if (Character.isDigit(c)) {
+                    cadena = cadena.substring(0, cadena.length() - 1);
+
+                } else {
+                    mostrarAlerta("solo se aceptan numeros para este campo", 2);
+
+                    cadena = fieldTelefono.getText();
+
+                    if (cadena.length() > 1) {
+                        cadena = cadena.substring(0, cadena.length() - 1);
+                    } else {
+                        cadena = "";
+                    }
+                    fieldTelefono.setText(cadena);
+                    fieldTelefono.requestFocus();
+                }
+            }
+        }
+    }//GEN-LAST:event_fieldTelefonoKeyReleased
+
+    private void fieldTelefonoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_fieldTelefonoKeyPressed
+
+    }//GEN-LAST:event_fieldTelefonoKeyPressed
+
+    private void fieldTelefonoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldTelefonoFocusLost
+        if (!fieldTelefono.getText().equals("")) {
+            editarClienteUnid("TELEFONO");
+        }
+    }//GEN-LAST:event_fieldTelefonoFocusLost
+
+    private void diasKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_diasKeyReleased
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            editarClienteUnid("DIAS A PAGAR");
+            this.requestFocusInWindow();
+        } else {
+            if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
+                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
+                char c = evt.getKeyChar();
+                String cadena = dias.getText();
+
+                if (Character.isDigit(c)) {
+                    cadena = cadena.substring(0, cadena.length() - 1);
+
+                } else {
+                    mostrarAlerta("solo se aceptan numeros para este campo", 2);
+
+                    cadena = dias.getText();
+
+                    if (cadena.length() > 1) {
+                        cadena = cadena.substring(0, cadena.length() - 1);
+                    } else {
+                        cadena = "";
+                    }
+                    dias.setText(cadena);
+                    dias.requestFocus();
+                }
+            }
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_diasKeyReleased
+
+    private void diasKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_diasKeyPressed
+
+    }//GEN-LAST:event_diasKeyPressed
+
+    private void diasFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_diasFocusLost
+        if (!dias.getText().equals("")) {
+            editarClienteUnid("DIAS A PAGAR");
+        }
+    }//GEN-LAST:event_diasFocusLost
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

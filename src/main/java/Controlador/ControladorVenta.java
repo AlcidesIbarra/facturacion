@@ -114,34 +114,33 @@ public class ControladorVenta {
     modelo.addColumn("descripcion");
     modelo.addColumn("id");
     
-    Boolean numeroLetra = false;
-    Integer numero;
+    // Obtenemos el texto y limpiamos espacios
+    String textoBusqueda = datoBuscar.getText().trim();
     
     // Ajuste de lógica para el campo 'activo' (1 para ACTIVOS, 0 para INACTIVOS)
     int estadoActivo = activos.equalsIgnoreCase("ACTIVOS") ? 1 : 0;
 
-    try {
-        numero = Integer.parseInt(datoBuscar.getText());
-        numeroLetra = true;
-    } catch (Exception e) {
-        numeroLetra = false;
-    }
+    // SOLUCIÓN: Usamos regex para saber si son solo números (sin importar el largo)
+    // Esto evita el error de Integer.parseInt con códigos de más de 9 dígitos
+    boolean esNumerico = textoBusqueda.matches("\\d+"); 
 
     try {
         String consulta = null;
         
         // Consultas actualizadas para tabla 'productos' y sintaxis SQLite
-        if (numeroLetra == false) {
+        if (!esNumerico) {
+            // Búsqueda por Nombre
             consulta = "SELECT id_producto, codigo_barras, nombre, precio_compra, precio_venta, stock "
-                    + "FROM productos WHERE nombre LIKE '%' || ? || '%' AND activo = " + estadoActivo + ";";
+                    + "FROM productos WHERE nombre LIKE '%' || ? || '%' AND activo = " + estadoActivo + " LIMIT 10;";
         } else {
+            // Búsqueda por Código de Barras (ahora soporta cualquier longitud)
             consulta = "SELECT id_producto, codigo_barras, nombre, precio_compra, precio_venta, stock "
-                    + "FROM productos WHERE codigo_barras LIKE '%' || ? || '%' AND activo = " + estadoActivo + ";";
+                    + "FROM productos WHERE codigo_barras LIKE '%' || ? || '%' AND activo = " + estadoActivo + " LIMIT 10;";
         }
 
-        if (!datoBuscar.getText().equalsIgnoreCase("")) {
+        if (!textoBusqueda.isEmpty()) {
             PreparedStatement ps = objetoConexion.estableceConexion().prepareStatement(consulta);
-            ps.setString(1, datoBuscar.getText());
+            ps.setString(1, textoBusqueda);
             ResultSet rs = ps.executeQuery();
 
             int contador = 0;
@@ -149,37 +148,43 @@ public class ControladorVenta {
 
             while (rs.next()) {
                 returno = true;
-                // Mapeo a tu objeto con los nuevos nombres de columna
+                // Mapeo a tu objeto con los nombres de columna de tu nueva tabla
                 objetoProducto.setCodigo(rs.getInt("id_producto"));
                 objetoProducto.setDescripcion(rs.getString("nombre"));
                 objetoProducto.setPrecioCompra(rs.getDouble("precio_compra"));
                 objetoProducto.setPrecioVenta(rs.getDouble("precio_venta"));
                 objetoProducto.setStock(rs.getDouble("stock"));
                 
-                // Agregamos a la fila
+                // Agregamos a la fila (Descripción visible, ID oculto)
                 modelo.addRow(new Object[]{objetoProducto.getDescripcion(), objetoProducto.getCodigo()});
                 contador = contador + tamaño;
             }
 
-            // --- SE MANTIENEN TUS DIMENSIONES Y CONFIGURACIÓN VISUAL ---
+            // --- CONFIGURACIÓN VISUAL (Sin modificar dimensiones) ---
             contenedorTabla.setVerticalScrollBarPolicy(contenedorTabla.VERTICAL_SCROLLBAR_NEVER);
             contenedorTabla.setVisible(true);
             listaSugerencias.setModel(modelo);
             contenedorTabla.setSize(170, contador + 6);
+            
             listaSugerencias.getTableHeader().setPreferredSize(new Dimension(180, 0));
             listaSugerencias.setRowMargin(0);
 
+            // Hacer la tabla no editable
             for (int i = 0; i < listaSugerencias.getColumnCount(); i++) {
                 Class<?> colClas = listaSugerencias.getColumnClass(i);
                 listaSugerencias.setDefaultEditor(colClas, null);
             }
 
+            // Ocultar columna de ID (para que el usuario solo vea el nombre)
             listaSugerencias.getColumn("id").setMinWidth(0);
             listaSugerencias.getColumn("id").setMaxWidth(0);
             listaSugerencias.getColumn("id").setWidth(0);
+        } else {
+            contenedorTabla.setVisible(false);
         }
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(null, "25 ERROR: CONTACTE AL ADMINISTRADOR:" + e.toString());
+        // Usamos tu Alerta para errores graves
+        new Alerta("Error en búsqueda: " + e.getMessage(), new Color(231, 76, 60), null);
     } finally {
         objetoConexion.cerrarConexion();
     }

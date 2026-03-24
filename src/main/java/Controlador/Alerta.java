@@ -19,79 +19,91 @@ import java.awt.geom.RoundRectangle2D;
 public class Alerta extends JPanel {
     private AWTEventListener clickGlobal;
 
-    public Alerta(String mensaje, Color colorFondo, JInternalFrame parent) {
-        // 1. Color con transparencia (Glassmorphism)
+    /**
+     * Constructor Universal de Alerta
+     * @param mensaje Texto a mostrar
+     * @param colorFondo Color base (se le aplicará transparencia)
+     * @param parent Contenedor padre (JFrame, JInternalFrame o JDialog)
+     */
+    public Alerta(String mensaje, Color colorFondo, final Container parent) {
+        // 1. Configuración de Estilo y Transparencia
         Color colorTrans = new Color(colorFondo.getRed(), colorFondo.getGreen(), colorFondo.getBlue(), 200);
-        
         setOpaque(false);
         setBackground(colorTrans);
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
 
-        // 2. TEXTO: Limpieza profunda de estilos globales
+        // 2. Texto Centrado con JTextPane (Ignora estilos globales de TextArea)
         JTextPane txt = new JTextPane();
-        
-        // Forzamos un UI básico para ignorar bordes negros o estilos del TextArea global
-        txt.setUI(new BasicTextPaneUI()); 
-        txt.setEditable(false);
-        txt.setFocusable(false);
-        txt.setOpaque(false);
-        txt.setBackground(new Color(0, 0, 0, 0));
-        txt.setBorder(null); // Elimina tu borde negro global en este componente
-        txt.setHighlighter(null); 
-        
-        // Estilo del texto
+        txt.setUI(new javax.swing.plaf.basic.BasicTextPaneUI()); 
         txt.setText(mensaje);
         txt.setFont(new Font("SansSerif", Font.BOLD, 14));
         txt.setForeground(Color.WHITE);
+        txt.setOpaque(false);
+        txt.setEditable(false);
+        txt.setFocusable(false);
+        txt.setHighlighter(null);
 
-        // Centrado de texto (Párrafo)
         StyledDocument doc = txt.getStyledDocument();
         SimpleAttributeSet center = new SimpleAttributeSet();
         StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
         doc.setParagraphAttributes(0, doc.getLength(), center, false);
-        
-        txt.setSize(new Dimension(260, Short.MAX_VALUE));
         add(txt, BorderLayout.CENTER);
 
-        // 3. Dimensiones y Posición (Arriba Centrado)
-        Dimension d = getPreferredSize();
-        setSize(new Dimension(300, d.height));
-        int x = (parent.getWidth() - getWidth()) / 2;
-        setLocation(x, 15);
+        // 3. Obtener el LayeredPane de forma genérica
+        JLayeredPane tempLP = null;
+        if (parent instanceof JInternalFrame) {
+            tempLP = ((JInternalFrame) parent).getLayeredPane();
+        } else if (parent instanceof RootPaneContainer) {
+            tempLP = ((RootPaneContainer) parent).getLayeredPane();
+        }
 
-        // 4. ESCUCHA GLOBAL: Cierra al hacer clic en CUALQUIER componente (TextFields, Botones, etc.)
+        if (tempLP == null) return; 
+
+        // Definimos la variable FINAL para que sea accesible desde hilos y lambdas
+        final JLayeredPane layeredPane = tempLP;
+
+        // 4. Dimensiones y Posición (Arriba Centrado)
+        setSize(new Dimension(300, getPreferredSize().height));
+        setLocation((parent.getWidth() - getWidth()) / 2, 20);
+
+        // 5. ESCUCHA DE CLIC GLOBAL: Cierra al tocar cualquier parte de la app
         clickGlobal = event -> {
             if (event instanceof MouseEvent && event.getID() == MouseEvent.MOUSE_PRESSED) {
-                cerrarAlerta(parent);
+                cerrarAlerta(parent, layeredPane);
             }
         };
         Toolkit.getDefaultToolkit().addAWTEventListener(clickGlobal, AWTEvent.MOUSE_EVENT_MASK);
 
-        // 5. Agregar al LayeredPane para que flote
-        parent.getLayeredPane().add(this, JLayeredPane.POPUP_LAYER);
-        iniciarTemporizador(parent);
-    }
-
-    private synchronized void cerrarAlerta(JInternalFrame parent) {
-        if (clickGlobal != null) {
-            Toolkit.getDefaultToolkit().removeAWTEventListener(clickGlobal);
-            clickGlobal = null;
-        }
-        setVisible(false);
-        parent.getLayeredPane().remove(this);
-        parent.repaint();
-    }
-
-    private void iniciarTemporizador(JInternalFrame parent) {
+        // 6. Agregar al panel de capas y mostrar
+        layeredPane.add(this, JLayeredPane.POPUP_LAYER);
+        
+        // 7. Temporizador de auto-cierre (3.5 segundos)
         new Thread(() -> {
             try {
-                Thread.sleep(3500); // Duración de la alerta
-                SwingUtilities.invokeLater(() -> cerrarAlerta(parent));
+                Thread.sleep(3500);
+                SwingUtilities.invokeLater(() -> cerrarAlerta(parent, layeredPane));
             } catch (InterruptedException e) {
                 // Hilo interrumpido
             }
         }).start();
+    }
+
+    /**
+     * Limpia los recursos y elimina la alerta de la pantalla
+     */
+    private synchronized void cerrarAlerta(Container parent, JLayeredPane lp) {
+        if (clickGlobal != null) {
+            Toolkit.getDefaultToolkit().removeAWTEventListener(clickGlobal);
+            clickGlobal = null;
+        }
+        this.setVisible(false);
+        if (lp != null) {
+            lp.remove(this);
+        }
+        if (parent != null) {
+            parent.repaint();
+        }
     }
 
     @Override
@@ -99,11 +111,11 @@ public class Alerta extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        // Fondo redondeado con el color transparente
+        // Dibujamos el fondo redondeado
         g2.setColor(getBackground());
         g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 25, 25));
         
-        // Borde blanco sutil (efecto cristal)
+        // Borde fino tipo "cristal"
         g2.setColor(new Color(255, 255, 255, 60));
         g2.setStroke(new BasicStroke(1.2f));
         g2.draw(new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, 25, 25));

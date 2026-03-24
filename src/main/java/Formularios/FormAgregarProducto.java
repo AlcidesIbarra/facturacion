@@ -52,6 +52,10 @@ import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.FocusEvent;
 import javax.swing.JOptionPane;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 /**
  *
@@ -65,6 +69,14 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
     public FormAgregarProducto(Integer verificador1) {
         initComponents();
         ControladorAdministracion ca = new ControladorAdministracion();
+        
+            configurarRestriccionNumerica(costoProducto, 12);
+    configurarRestriccionNumerica(VentaProducto, 12);
+    
+    // Stock: hasta 8 caracteres
+    configurarRestriccionNumerica(stockProducto, 8);
+    
+    
         verificador.setVisible(false);
         ca.cambiacolor(this);
         ca.BotonesCrisitalPrim(btnGuardarProducto, Color.green, Color.black, Color.black);
@@ -261,7 +273,7 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
                 descripcionProductoKeyPressed(evt);
             }
         });
-        jPanel1.add(descripcionProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 30, 170, -1));
+        jPanel1.add(descripcionProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 30, 300, -1));
 
         jLabel2.setText("Descripcion:");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, -1, -1));
@@ -336,8 +348,18 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
         jPanel1.add(verificador, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 0, -1, -1));
         jPanel1.add(txtId, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 0, 30, 20));
 
+        cbxProveedor.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                cbxProveedorKeyPressed(evt);
+            }
+        });
         jPanel1.add(cbxProveedor, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 150, -1));
 
+        cbxRubro.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                cbxRubroKeyPressed(evt);
+            }
+        });
         jPanel1.add(cbxRubro, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 180, 150, -1));
 
         jButton1.setText("+");
@@ -356,7 +378,7 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
         });
         jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 150, -1, -1));
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, 320, 280));
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, 410, 280));
 
         jLabel8.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel8.setText("AGREGAR PRODUCTO");
@@ -469,43 +491,89 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
 
     private void stockProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stockProductoKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            proveedorProducto.requestFocus();
+           cbxProveedor.requestFocus();
+                  // 2. Seleccionar el primer ítem (índice 0)
+        if (cbxProveedor.getItemCount() > 0) {
+            cbxProveedor.setSelectedIndex(0);
+        }
+        
+        // 3. Desplegar la lista automáticamente
+        cbxProveedor.setPopupVisible(true);
         }
     }//GEN-LAST:event_stockProductoKeyPressed
 
     private void btnGuardarProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnGuardarProductoKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            try {
+            Modelos.Producto pro = new Modelos.Producto();
+
+            if (!txtId.getText().isEmpty()) {
+                pro.setId(Integer.parseInt(txtId.getText()));
+            }
+
+            pro.setCodigoBarras(codigoProducto.getText());
+            pro.setNombre(descripcionProducto.getText());
+            pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
+            pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
+            pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
+
+            // 1. Obtener ID de Rubro
+            ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
+            if (itemRubro != null && itemRubro.getId() > 0) {
+                pro.setIdCategoria(itemRubro.getId());
+            } else {
+                new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
+            // 2. Obtener ID de Proveedor
+            ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
+            if (itemProv != null && itemProv.getId() > 0) {
+                pro.setIdProveedor(itemProv.getId());
+            } else {
+                new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
             int verifAux = Integer.parseInt(verificador.getText());
+            int modoEjecucion = verifAux;
             if (verifAux == 4) {
-                verifAux = 2;
+                modoEjecucion = 2;
             }
             if (verifAux == 3) {
-                verifAux = 1;
+                modoEjecucion = 1;
             }
 
-            Controlador.ControladorProducto objetoProducto = new Controlador.ControladorProducto();
-            Mensaje mj = objetoProducto.agregarProducto(codigoProducto, descripcionProducto,
-                    costoProducto, VentaProducto, stockProducto, proveedorProducto, rubroProducto,
-                    verifAux, tab, menj, null);
+            // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
+            Controlador.DaoProducto dao = new Controlador.DaoProducto();
+            boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
 
-            tab = null;
+            // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
+            if (guardadoExitoso) {
+                tab = null;
+                int vFinal = Integer.parseInt(verificador.getText());
 
-            if (Integer.parseInt(verificador.getText()) == 4 || Integer.parseInt(verificador.getText()) == 3) {
-                try {
-                    this.setClosed(true);
-
-                } catch (PropertyVetoException ex) {
-                    Logger.getLogger(FormFacturar.class.getName()).log(Level.SEVERE, null, ex);
+                if (vFinal == 4 || vFinal == 3) {
+                    try {
+                        this.setClosed(true);
+                    } catch (java.beans.PropertyVetoException ex) {
+                        java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // Aquí limpiamos porque sabemos que los datos ya están en la BD
+                    limpiarCampos();
+                    new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
                 }
+            } else {
+                // Si NO fue exitoso (por código duplicado), no limpiamos nada.
+                // Ponemos el foco en el código de barras para que lo corrija.
+                codigoProducto.requestFocus();
+                codigoProducto.selectAll();
             }
-            if (mj.getCodigo() == 1) {
-                limpiarCampos();
-                ControladorProducto cc = new ControladorProducto();
-                cc.verCodigoDisponlible(codigoProducto);
-            }
-            if (mj != null) {
-                mostrarAlerta(mj.getMensaje(), mj.getCodigo());
-            }
+
+        } catch (NumberFormatException e) {
+            new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
+        }
         }
     }//GEN-LAST:event_btnGuardarProductoKeyPressed
     boolean fucuseadoprod = false;
@@ -617,35 +685,7 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
 
         System.out.println("    aqui piertde ");
     }//GEN-LAST:event_listaProductoKeyPressed
-    private void verificarIngreso(JTextField texto, char c) {
-
-        String cadena = texto.getText();
-
-        if (Character.isDigit(c) || c == '.') {
-            cadena = cadena.substring(0, cadena.length() - 1);
-
-            if (c == '.' && cadena.contains(".")) {
-
-                texto.setText(cadena);
-            }
-        } else {
-            mostrarAlerta("solo se aceptan numeros para este campo", 2);
-
-            cadena = texto.getText();
-
-            if (cadena.length() > 1) {
-                cadena = cadena.substring(0, cadena.length() - 1);
-            } else {
-                cadena = "";
-            }
-            texto.setText(cadena);
-            //  texto.requestFocus();
-            texto.setCaretPosition(texto.getText().length());
-            texto.requestFocusInWindow();
-
-        }
-
-    }
+ 
     private void listaProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listaProductoKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_listaProductoKeyReleased
@@ -655,39 +695,18 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_listaProductoKeyTyped
 
     private void costoProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_costoProductoKeyReleased
-        if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
 
-            verificarIngreso(costoProducto, evt.getKeyChar());
-
-        }
     }//GEN-LAST:event_costoProductoKeyReleased
 
     private void VentaProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_VentaProductoKeyReleased
-        if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
 
-            verificarIngreso(VentaProducto, evt.getKeyChar());
-
-        }
     }//GEN-LAST:event_VentaProductoKeyReleased
 
     private void stockProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stockProductoKeyReleased
-        if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
 
-            verificarIngreso(stockProducto, evt.getKeyChar());
-
-        }
     }//GEN-LAST:event_stockProductoKeyReleased
 
     private void codigoProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_codigoProductoKeyReleased
-        if (evt.getKeyCode() != KeyEvent.VK_ENTER && evt.getKeyCode() != KeyEvent.VK_BACK_SPACE
-                && evt.getKeyCode() != KeyEvent.VK_DELETE) {
-
-            verificarIngreso(codigoProducto, evt.getKeyChar());
-
-        }
     }//GEN-LAST:event_codigoProductoKeyReleased
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -741,6 +760,31 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
             // pero si querés una extra aquí, podés dejarla.
         }
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void cbxProveedorKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cbxProveedorKeyPressed
+    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+        // 1. Pedir el foco para el siguiente combo (Rubro)
+        cbxRubro.requestFocusInWindow();
+        
+        // 2. Seleccionar el primer ítem si tiene datos
+        if (cbxRubro.getItemCount() > 0) {
+            cbxRubro.setSelectedIndex(0);
+        }
+        
+        // 3. Desplegar la lista automáticamente
+        cbxRubro.setPopupVisible(true);
+    }
+    }//GEN-LAST:event_cbxProveedorKeyPressed
+
+    private void cbxRubroKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cbxRubroKeyPressed
+    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+        // 1. Cerramos el desplegable del combo por seguridad
+        cbxRubro.setPopupVisible(false);
+        
+        // 2. Ejecutamos la misma acción que el botón Guardar
+        btnGuardarProductoActionPerformed(null);
+    }
+    }//GEN-LAST:event_cbxRubroKeyPressed
     private void limpiarCampos() {
         // 1. Limpiar campos de texto
         txtId.setText("");
@@ -762,9 +806,52 @@ public class FormAgregarProducto extends javax.swing.JInternalFrame {
         Controlador.DaoProducto dao = new Controlador.DaoProducto();
         dao.verCodigoDisponible(codigoProducto); // Esto pone el número sugerido en el JTextField
 
-        // 4. Devolver el foco a la descripción (ya que el código se puso solo)
-        descripcionProducto.requestFocus();
+    // 2. Restablecemos combos al índice 0 ("-- Seleccione --")
+    if (cbxRubro.getItemCount() > 0) cbxRubro.setSelectedIndex(0);
+    if (cbxProveedor.getItemCount() > 0) cbxProveedor.setSelectedIndex(0);
+    
+    // 3. Generamos el siguiente código disponible (el método que ya tenés)
+ 
+    dao.verCodigoDisponible(codigoProducto); 
+
+    // 4. EL FOCO: Ponemos el cursor listo para el próximo producto
+    // Usamos requestFocusInWindow() que es más seguro para componentes Swing
+    codigoProducto.requestFocusInWindow();
+    codigoProducto.selectAll();
     }
+    
+    
+   private void configurarRestriccionNumerica(JTextField campo, int limiteCaracteres) {
+    ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            // 1. Calculamos cómo quedaría el texto final si aceptamos el cambio
+            String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String nextText = currentText.substring(0, offset) + text + currentText.substring(offset + length);
+
+            // 2. VALIDACIONES:
+            // a) Que no supere el límite de caracteres
+            // b) Que cumpla el formato numérico (Dígitos y opcionalmente UN solo punto)
+            if (nextText.length() <= limiteCaracteres && nextText.matches("\\d*\\.?\\d*")) {
+                super.replace(fb, offset, length, text, attrs);
+            } else {
+                // Si falla por longitud
+                if (nextText.length() > limiteCaracteres) {
+                    new Alerta("Límite de " + limiteCaracteres + " caracteres alcanzado", new Color(241, 196, 15), null);
+                } else {
+                    // Si falla por tipo de caracter (letras o segundo punto)
+                    new Alerta("Solo números y un punto decimal (.)", new Color(231, 76, 60), null);
+                }
+            }
+        }
+
+        @Override
+        public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+            super.remove(fb, offset, length);
+        }
+    });
+}
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField VentaProducto;
     private javax.swing.JButton btnGuardarProducto;

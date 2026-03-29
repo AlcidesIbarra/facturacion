@@ -1,0 +1,883 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JInternalFrame.java to edit this template
+ */
+package Formularios;
+
+import Controlador.Alerta;
+import Controlador.ControladorAdministracion;
+import Controlador.ControladorCliente;
+import Controlador.ControladorProducto;
+import Controlador.ControladorVenta;
+import Controlador.DaoProducto;
+import Controlador.VentanaFactura;
+import Modelos.Mensaje;
+import Modelos.ModeloCliente;
+import Modelos.ModeloProducto;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyVetoException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.border.Border;
+import Modelos.ItemSeleccionable;
+import Modelos.Producto;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.event.FocusEvent;
+import javax.swing.JOptionPane;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+
+/**
+ *
+ * @author ALCIDES
+ */
+public class FormAgregarProducto extends javax.swing.JInternalFrame {
+
+    /**
+     * Creates new form formAgregarProducto
+     */
+    public FormAgregarProducto(Integer verificador1) {
+        initComponents();
+        ControladorAdministracion ca = new ControladorAdministracion();
+        
+            configurarRestriccionNumerica(costoProducto, 12);
+    configurarRestriccionNumerica(VentaProducto, 12);
+    
+    // Stock: hasta 8 caracteres
+    configurarRestriccionNumerica(stockProducto, 8);
+    
+    
+        verificador.setVisible(false);
+        ca.cambiacolor(this);
+        ca.BotonesCrisitalPrim(btnGuardarProducto, Color.green, Color.black, Color.black);
+        ca.BotonesCrisitalPrim(jButton2, Color.RED, Color.black, Color.black);
+        contenedorTabla.setVisible(false);
+        txtBuscarProducto.setVisible(false);
+        jLabel8.setHorizontalAlignment(SwingConstants.CENTER);
+
+        DaoProducto dp = new DaoProducto();
+        dp.cargarComboGenerico(cbxRubro, 1);
+
+// Cargar Proveedores (Tipo 2)
+        dp.cargarComboGenerico(cbxProveedor, 2);
+
+        dp.verCodigoDisponible(codigoProducto);
+        codigoProducto.selectAll();
+        codigoProducto.requestFocusInWindow();
+
+        if (verificador1 == 2 || verificador1 == 4) {
+            verificador.setText(verificador1.toString());
+            jLabel8.setText("EDITAR PRODUCTO");
+            txtBuscarProducto.setVisible(true);
+            codigoProducto.setVisible(false);
+        }
+        verificador.setText(verificador1.toString());
+
+        Dimension d = new Dimension(80, 26); // El tamaño que quieras
+        jButton2.setPreferredSize(d);
+        jButton2.setMinimumSize(d);
+        jButton2.setMaximumSize(d);
+
+        btnGuardarProducto.setPreferredSize(d);
+        btnGuardarProducto.setMinimumSize(d);
+        btnGuardarProducto.setMaximumSize(d);
+    }
+
+    JTable tab = new JTable();
+    JLabel menj = null;
+
+    public void editarProducto(Integer codigo, JTable tabla, JLabel mensaje) {
+        tab = tabla;
+        menj = mensaje;
+
+        DaoProducto dp = new DaoProducto();
+        Producto producto = dp.obtenerproducto(codigo);
+
+        // Seteo de campos de texto
+        txtBuscarProducto.setText(producto.getCodigoBarras().toString());
+
+        descripcionProducto.setText(producto.getNombre());
+        costoProducto.setText(producto.getPrecioCompra().toString());
+        VentaProducto.setText(producto.getPrecioVenta().toString());
+        stockProducto.setText(producto.getStock().toString());
+
+        // --- SELECCIÓN DE COMBOBOX POR ID ---
+        // Usamos el método anterior pasando el combo y el ID que viene de la DB
+        dp.seleccionarItemPorId(cbxRubro, producto.getIdCategoria());
+        dp.seleccionarItemPorId(cbxProveedor, producto.getIdProveedor());
+
+        contenedorTabla.setVisible(false);
+        txtBuscarProducto.transferFocus();
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPasswordField1 = new javax.swing.JPasswordField();
+        jPanel1 = new javax.swing.JPanel();
+        contenedorTabla = new javax.swing.JScrollPane();
+        listaProducto = new javax.swing.JTable();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        stockProducto = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        VentaProducto = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        costoProducto = new javax.swing.JTextField();
+        descripcionProducto = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        btnGuardarProducto = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        txtBuscarProducto = new javax.swing.JTextField();
+        codigoProducto = new javax.swing.JTextField();
+        verificador = new javax.swing.JLabel();
+        txtId = new javax.swing.JLabel();
+        cbxProveedor = new javax.swing.JComboBox<>();
+        cbxRubro = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
+
+        jPasswordField1.setText("jPasswordField1");
+
+        setClosable(true);
+        setIconifiable(true);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        listaProducto.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {},
+                {},
+                {},
+                {}
+            },
+            new String [] {
+
+            }
+        ));
+        listaProducto.setAutoscrolls(false);
+        listaProducto.setRowMargin(0);
+        listaProducto.setShowHorizontalLines(false);
+        listaProducto.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                listaProductoFocusLost(evt);
+            }
+        });
+        listaProducto.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listaProductoMouseClicked(evt);
+            }
+        });
+        listaProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                listaProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                listaProductoKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                listaProductoKeyTyped(evt);
+            }
+        });
+        contenedorTabla.setViewportView(listaProducto);
+
+        jPanel1.add(contenedorTabla, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 20, 170, 20));
+
+        jLabel6.setText("Proveedor:");
+        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, -1, -1));
+
+        jLabel7.setText("Rubro:");
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, -1));
+
+        stockProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                stockProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                stockProductoKeyReleased(evt);
+            }
+        });
+        jPanel1.add(stockProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 120, 80, -1));
+
+        jLabel5.setText("Stock:");
+        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, -1, -1));
+
+        jLabel4.setText("precio Venta:");
+        jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, -1, -1));
+
+        VentaProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                VentaProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                VentaProductoKeyReleased(evt);
+            }
+        });
+        jPanel1.add(VentaProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 90, 80, -1));
+
+        jLabel3.setText("Precio Costo:");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, -1, -1));
+
+        costoProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                costoProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                costoProductoKeyReleased(evt);
+            }
+        });
+        jPanel1.add(costoProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 80, -1));
+
+        descripcionProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                descripcionProductoKeyPressed(evt);
+            }
+        });
+        jPanel1.add(descripcionProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 30, 300, -1));
+
+        jLabel2.setText("Descripcion:");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, -1, -1));
+
+        jLabel1.setText("Codigo:");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 0, -1, -1));
+
+        btnGuardarProducto.setText("Guardar");
+        btnGuardarProducto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGuardarProductoActionPerformed(evt);
+            }
+        });
+        btnGuardarProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                btnGuardarProductoKeyPressed(evt);
+            }
+        });
+        jPanel1.add(btnGuardarProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 210, -1, -1));
+
+        jButton2.setText("Limpiar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 210, -1, -1));
+
+        txtBuscarProducto.setAutoscrolls(false);
+        txtBuscarProducto.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtBuscarProductoFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtBuscarProductoFocusLost(evt);
+            }
+        });
+        txtBuscarProducto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtBuscarProductoActionPerformed(evt);
+            }
+        });
+        txtBuscarProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtBuscarProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtBuscarProductoKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtBuscarProductoKeyTyped(evt);
+            }
+        });
+        jPanel1.add(txtBuscarProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 0, 170, -1));
+
+        codigoProducto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                codigoProductoActionPerformed(evt);
+            }
+        });
+        codigoProducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                codigoProductoKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                codigoProductoKeyReleased(evt);
+            }
+        });
+        jPanel1.add(codigoProducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 0, 170, -1));
+
+        verificador.setText("1");
+        jPanel1.add(verificador, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 0, -1, -1));
+        jPanel1.add(txtId, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 0, 30, 20));
+
+        cbxProveedor.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                cbxProveedorKeyPressed(evt);
+            }
+        });
+        jPanel1.add(cbxProveedor, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 150, -1));
+
+        cbxRubro.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                cbxRubroKeyPressed(evt);
+            }
+        });
+        jPanel1.add(cbxRubro, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 180, 150, -1));
+
+        jButton1.setText("+");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 180, -1, -1));
+
+        jButton3.setText("+");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 150, -1, -1));
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, 410, 280));
+
+        jLabel8.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel8.setText("AGREGAR PRODUCTO");
+        getContentPane().add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 0, 250, -1));
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void codigoProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_codigoProductoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_codigoProductoActionPerformed
+
+    private void btnGuardarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarProductoActionPerformed
+        try {
+            Modelos.Producto pro = new Modelos.Producto();
+
+            if (!txtId.getText().isEmpty()) {
+                pro.setId(Integer.parseInt(txtId.getText()));
+            }
+
+            pro.setCodigoBarras(codigoProducto.getText());
+            pro.setNombre(descripcionProducto.getText());
+            pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
+            pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
+            pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
+
+            // 1. Obtener ID de Rubro
+            ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
+            if (itemRubro != null && itemRubro.getId() > 0) {
+                pro.setIdCategoria(itemRubro.getId());
+            } else {
+                new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
+            // 2. Obtener ID de Proveedor
+            ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
+            if (itemProv != null && itemProv.getId() > 0) {
+                pro.setIdProveedor(itemProv.getId());
+            } else {
+                new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
+            int verifAux = Integer.parseInt(verificador.getText());
+            int modoEjecucion = verifAux;
+            if (verifAux == 4) {
+                modoEjecucion = 2;
+            }
+            if (verifAux == 3) {
+                modoEjecucion = 1;
+            }
+
+            // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
+            Controlador.DaoProducto dao = new Controlador.DaoProducto();
+            boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
+
+            // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
+            if (guardadoExitoso) {
+                tab = null;
+                int vFinal = Integer.parseInt(verificador.getText());
+
+                if (vFinal == 4 || vFinal == 3) {
+                    try {
+                        this.setClosed(true);
+                    } catch (java.beans.PropertyVetoException ex) {
+                        java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // Aquí limpiamos porque sabemos que los datos ya están en la BD
+                    limpiarCampos();
+                    new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
+                }
+            } else {
+                // Si NO fue exitoso (por código duplicado), no limpiamos nada.
+                // Ponemos el foco en el código de barras para que lo corrija.
+                codigoProducto.requestFocus();
+                codigoProducto.selectAll();
+            }
+
+        } catch (NumberFormatException e) {
+            new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
+        }
+
+    }//GEN-LAST:event_btnGuardarProductoActionPerformed
+
+    private void codigoProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_codigoProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            descripcionProducto.requestFocus();
+        }      // TODO add your handling code here:
+    }//GEN-LAST:event_codigoProductoKeyPressed
+
+    private void descripcionProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_descripcionProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            costoProducto.requestFocus();
+        }        // TODO add your handling code here:
+    }//GEN-LAST:event_descripcionProductoKeyPressed
+
+    private void costoProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_costoProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            VentaProducto.requestFocus();
+        }
+    }//GEN-LAST:event_costoProductoKeyPressed
+
+    private void VentaProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_VentaProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            stockProducto.requestFocus();
+        }
+    }//GEN-LAST:event_VentaProductoKeyPressed
+
+    private void stockProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stockProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+           cbxProveedor.requestFocus();
+                  // 2. Seleccionar el primer ítem (índice 0)
+        if (cbxProveedor.getItemCount() > 0) {
+            cbxProveedor.setSelectedIndex(0);
+        }
+        
+        // 3. Desplegar la lista automáticamente
+        cbxProveedor.setPopupVisible(true);
+        }
+    }//GEN-LAST:event_stockProductoKeyPressed
+
+    private void btnGuardarProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_btnGuardarProductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            try {
+            Modelos.Producto pro = new Modelos.Producto();
+
+            if (!txtId.getText().isEmpty()) {
+                pro.setId(Integer.parseInt(txtId.getText()));
+            }
+
+            pro.setCodigoBarras(codigoProducto.getText());
+            pro.setNombre(descripcionProducto.getText());
+            pro.setPrecioCompra(new java.math.BigDecimal(costoProducto.getText()));
+            pro.setPrecioVenta(new java.math.BigDecimal(VentaProducto.getText()));
+            pro.setStock(new java.math.BigDecimal(stockProducto.getText()));
+
+            // 1. Obtener ID de Rubro
+            ItemSeleccionable itemRubro = (ItemSeleccionable) cbxRubro.getSelectedItem();
+            if (itemRubro != null && itemRubro.getId() > 0) {
+                pro.setIdCategoria(itemRubro.getId());
+            } else {
+                new Alerta("Por favor seleccione un Rubro", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
+            // 2. Obtener ID de Proveedor
+            ItemSeleccionable itemProv = (ItemSeleccionable) cbxProveedor.getSelectedItem();
+            if (itemProv != null && itemProv.getId() > 0) {
+                pro.setIdProveedor(itemProv.getId());
+            } else {
+                new Alerta("Por favor seleccione un Proveedor", new java.awt.Color(255, 152, 0), this);
+                return;
+            }
+
+            int verifAux = Integer.parseInt(verificador.getText());
+            int modoEjecucion = verifAux;
+            if (verifAux == 4) {
+                modoEjecucion = 2;
+            }
+            if (verifAux == 3) {
+                modoEjecucion = 1;
+            }
+
+            // --- SOLUCIÓN: Capturar si el guardado fue exitoso ---
+            Controlador.DaoProducto dao = new Controlador.DaoProducto();
+            boolean guardadoExitoso = dao.agregarProducto(pro, modoEjecucion, tab, menj, this);
+
+            // SOLO si se guardó correctamente, procedemos a cerrar o limpiar
+            if (guardadoExitoso) {
+                tab = null;
+                int vFinal = Integer.parseInt(verificador.getText());
+
+                if (vFinal == 4 || vFinal == 3) {
+                    try {
+                        this.setClosed(true);
+                    } catch (java.beans.PropertyVetoException ex) {
+                        java.util.logging.Logger.getLogger(FormFacturar.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // Aquí limpiamos porque sabemos que los datos ya están en la BD
+                    limpiarCampos();
+                    new Alerta("Formulario listo para nuevo producto", new java.awt.Color(52, 152, 219), this);
+                }
+            } else {
+                // Si NO fue exitoso (por código duplicado), no limpiamos nada.
+                // Ponemos el foco en el código de barras para que lo corrija.
+                codigoProducto.requestFocus();
+                codigoProducto.selectAll();
+            }
+
+        } catch (NumberFormatException e) {
+            new Alerta("Error: Verifique precios, stock e IDs", new java.awt.Color(220, 53, 69), this);
+        }
+        }
+    }//GEN-LAST:event_btnGuardarProductoKeyPressed
+    boolean fucuseadoprod = false;
+    private void txtBuscarProductoFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBuscarProductoFocusGained
+        fucuseadoprod = true;
+        txtBuscarProducto.selectAll();
+
+    }//GEN-LAST:event_txtBuscarProductoFocusGained
+    boolean abreSlide = false;
+    private void txtBuscarProductoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBuscarProductoFocusLost
+
+        System.out.println("abreslide" + abreSlide);
+
+        if (abreSlide == true) {
+            if (!listaProducto.isColumnSelected(0)) {
+
+                Integer cod = null;
+                try {
+                    cod = Integer.parseInt(txtBuscarProducto.getText());
+                } catch (Exception e) {
+                }
+                editarProducto(cod, null, menj);
+                contenedorTabla.setVisible(false);
+
+            }
+        }
+
+
+    }//GEN-LAST:event_txtBuscarProductoFocusLost
+
+    private void txtBuscarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtBuscarProductoActionPerformed
+
+    }//GEN-LAST:event_txtBuscarProductoActionPerformed
+
+    private void txtBuscarProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyPressed
+
+    }//GEN-LAST:event_txtBuscarProductoKeyPressed
+
+    private void txtBuscarProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyReleased
+        Controlador.ControladorVenta objetoVenta = new ControladorVenta();
+        abreSlide = true;
+        boolean returno = objetoVenta.buscarProducto(txtBuscarProducto, listaProducto, contenedorTabla, "ACTIVOS");
+
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER && !txtBuscarProducto.getText().equals("")) {
+            fucuseadoprod = false;
+            listaProducto.changeSelection(0, 0, false, false);
+            listaProducto.requestFocus();
+
+            if (returno == false) {
+                contenedorTabla.setVisible(false);
+           new Alerta("No se encontraron coincidencias.", new java.awt.Color(255, 153, 51), null);
+                txtBuscarProducto.requestFocus();
+                txtBuscarProducto.selectAll();
+            limpiarCampos();
+
+            }
+            if (txtBuscarProducto.getText().equals("")) {
+                txtBuscarProducto.requestFocus();
+            } else {
+                listaProducto.changeSelection(0, 0, false, false);
+                listaProducto.requestFocus();
+            }
+
+        }
+
+        if (txtBuscarProducto.getText().equals("")) {
+            contenedorTabla.setVisible(false);
+        }
+    }//GEN-LAST:event_txtBuscarProductoKeyReleased
+
+    private void txtBuscarProductoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBuscarProductoKeyTyped
+
+    }//GEN-LAST:event_txtBuscarProductoKeyTyped
+
+    private void listaProductoFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_listaProductoFocusLost
+        /*
+        if (fucuseadoprod == false) {
+
+            contenedorTabla.setVisible(false);
+            Controlador.ControladorVenta objetoVenta = new ControladorVenta();
+            Mensaje mj = objetoVenta.SeleccionarProductosVenta(listaProducto, fieldCantidad,
+                codigoProducto, txtBuscarProducto, prCosto, prVenta,
+                buscaCliente, contenedorTabla, texfieldStock, descripcionProd, 2);
+            if (mj != null) {
+                mostrarAlerta(mj.getMensaje(), mj.getCodigo());
+            }
+
+        }
+        fucuseadoprod = false;
+         */
+    }//GEN-LAST:event_listaProductoFocusLost
+
+    private void listaProductoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listaProductoMouseClicked
+
+        int fila = listaProducto.getSelectedRow();
+        editarProducto(Integer.parseInt(listaProducto.getValueAt(fila, 1).toString()), null, menj);
+
+    }//GEN-LAST:event_listaProductoMouseClicked
+
+    private void listaProductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listaProductoKeyPressed
+
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER && !txtBuscarProducto.getText().equals("")) {
+
+            Controlador.ControladorVenta objetoVenta = new ControladorVenta();
+            int fila = listaProducto.getSelectedRow();
+            editarProducto(Integer.parseInt(listaProducto.getValueAt(fila, 1).toString()), null, menj);
+
+        }
+
+        System.out.println("    aqui piertde ");
+    }//GEN-LAST:event_listaProductoKeyPressed
+ 
+    private void listaProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listaProductoKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_listaProductoKeyReleased
+
+    private void listaProductoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_listaProductoKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_listaProductoKeyTyped
+
+    private void costoProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_costoProductoKeyReleased
+
+    }//GEN-LAST:event_costoProductoKeyReleased
+
+    private void VentaProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_VentaProductoKeyReleased
+
+    }//GEN-LAST:event_VentaProductoKeyReleased
+
+    private void stockProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stockProductoKeyReleased
+
+    }//GEN-LAST:event_stockProductoKeyReleased
+
+    private void codigoProductoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_codigoProductoKeyReleased
+    }//GEN-LAST:event_codigoProductoKeyReleased
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        limpiarCampos();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+        Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+        Frame framePrincipal = null;
+        if (window instanceof Frame) {
+            framePrincipal = (Frame) window;
+        }
+
+        // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+        // (Frame padre, modal true, este JInternalFrame para las alertas)
+        VentanaFactura diag = new VentanaFactura(framePrincipal, true, this, "rubro");
+        diag.setVisible(true);
+
+        // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+        if (diag.isAceptado()) {
+            // Refrescamos el combo de rubros usando tu DAO de productos
+            DaoProducto dp = new DaoProducto();
+            dp.cargarComboGenerico(cbxRubro, 1);
+
+            // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+            // pero si querés una extra aquí, podés dejarla.
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+
+        Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+        Frame framePrincipal = null;
+        if (window instanceof Frame) {
+            framePrincipal = (Frame) window;
+        }
+
+        // 2. Instanciamos la ventana pasando los 3 parámetros requeridos:
+        // (Frame padre, modal true, este JInternalFrame para las alertas)
+        VentanaFactura diag = new VentanaFactura(framePrincipal, true, this, "proveedor");
+        diag.setVisible(true);
+
+        // 3. Si la ventana se cerró y el guardado fue exitoso (isAceptado)
+        if (diag.isAceptado()) {
+            // Refrescamos el combo de rubros usando tu DAO de productos
+            DaoProducto dp = new DaoProducto();
+            dp.cargarComboGenerico(cbxRubro, 2);
+
+            // La alerta de "Cargado" ya la dispara la VentanaFactura internamente, 
+            // pero si querés una extra aquí, podés dejarla.
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void cbxProveedorKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cbxProveedorKeyPressed
+    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+        // 1. Pedir el foco para el siguiente combo (Rubro)
+        cbxRubro.requestFocusInWindow();
+        
+        // 2. Seleccionar el primer ítem si tiene datos
+        if (cbxRubro.getItemCount() > 0) {
+            cbxRubro.setSelectedIndex(0);
+        }
+        
+        // 3. Desplegar la lista automáticamente
+        cbxRubro.setPopupVisible(true);
+    }
+    }//GEN-LAST:event_cbxProveedorKeyPressed
+
+    private void cbxRubroKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cbxRubroKeyPressed
+    if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+        // 1. Cerramos el desplegable del combo por seguridad
+        cbxRubro.setPopupVisible(false);
+        
+        // 2. Ejecutamos la misma acción que el botón Guardar
+        btnGuardarProductoActionPerformed(null);
+    }
+    }//GEN-LAST:event_cbxRubroKeyPressed
+    private void limpiarCampos() {
+        // 1. Limpiar campos de texto
+        txtId.setText("");
+        // codigoProducto.setText(""); // Ya no lo limpiamos a mano, lo hará el método de abajo
+        descripcionProducto.setText("");
+        costoProducto.setText("");
+        VentaProducto.setText("");
+        stockProducto.setText("");
+
+        // 2. Restablecer Combos
+        if (cbxRubro.getItemCount() > 0) {
+            cbxRubro.setSelectedIndex(0);
+        }
+        if (cbxProveedor.getItemCount() > 0) {
+            cbxProveedor.setSelectedIndex(0);
+        }
+
+        // 3. AUTO-GENERAR EL SIGUIENTE CÓDIGO DE BARRAS
+        Controlador.DaoProducto dao = new Controlador.DaoProducto();
+        dao.verCodigoDisponible(codigoProducto); // Esto pone el número sugerido en el JTextField
+
+    // 2. Restablecemos combos al índice 0 ("-- Seleccione --")
+    if (cbxRubro.getItemCount() > 0) cbxRubro.setSelectedIndex(0);
+    if (cbxProveedor.getItemCount() > 0) cbxProveedor.setSelectedIndex(0);
+    
+    // 3. Generamos el siguiente código disponible (el método que ya tenés)
+ 
+    dao.verCodigoDisponible(codigoProducto); 
+
+    // 4. EL FOCO: Ponemos el cursor listo para el próximo producto
+    // Usamos requestFocusInWindow() que es más seguro para componentes Swing
+    codigoProducto.requestFocusInWindow();
+    codigoProducto.selectAll();
+    }
+    
+    
+   private void configurarRestriccionNumerica(JTextField campo, int limiteCaracteres) {
+    ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            // 1. Calculamos cómo quedaría el texto final si aceptamos el cambio
+            String currentText = fb.getDocument().getText(0, fb.getDocument().getLength());
+            String nextText = currentText.substring(0, offset) + text + currentText.substring(offset + length);
+
+            // 2. VALIDACIONES:
+            // a) Que no supere el límite de caracteres
+            // b) Que cumpla el formato numérico (Dígitos y opcionalmente UN solo punto)
+            if (nextText.length() <= limiteCaracteres && nextText.matches("\\d*\\.?\\d*")) {
+                super.replace(fb, offset, length, text, attrs);
+            } else {
+                // Si falla por longitud
+                if (nextText.length() > limiteCaracteres) {
+                    new Alerta("Límite de " + limiteCaracteres + " caracteres alcanzado", new Color(241, 196, 15), null);
+                } else {
+                    // Si falla por tipo de caracter (letras o segundo punto)
+                    new Alerta("Solo números y un punto decimal (.)", new Color(231, 76, 60), null);
+                }
+            }
+        }
+
+        @Override
+        public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+            super.remove(fb, offset, length);
+        }
+    });
+}
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField VentaProducto;
+    private javax.swing.JButton btnGuardarProducto;
+    private javax.swing.JComboBox<Modelos.ItemSeleccionable> cbxProveedor;
+    private javax.swing.JComboBox<Modelos.ItemSeleccionable> cbxRubro;
+    private javax.swing.JTextField codigoProducto;
+    private javax.swing.JScrollPane contenedorTabla;
+    private javax.swing.JTextField costoProducto;
+    private javax.swing.JTextField descripcionProducto;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPasswordField jPasswordField1;
+    private javax.swing.JTable listaProducto;
+    private javax.swing.JTextField stockProducto;
+    private javax.swing.JTextField txtBuscarProducto;
+    private javax.swing.JLabel txtId;
+    private javax.swing.JLabel verificador;
+    // End of variables declaration//GEN-END:variables
+}
